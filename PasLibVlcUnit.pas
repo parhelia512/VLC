@@ -11352,5 +11352,6 @@ finalization
   libvlc_dynamic_dll_file_version_str    := '';
   libvlc_dynamic_dll_product_version_str := '';
 {$ENDIF}
+  libvlc_dynamic_dll_done;
 
 end.

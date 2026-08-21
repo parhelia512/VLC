@@ -3388,7 +3388,8 @@ begin
   begin
     with vctx do
     begin
-      bmp := TBitmap.Create(video_w, video_h);
+      Bitmap.SetSize(video_w, video_h);
+      bmp := Bitmap;//TBitmap.Create(video_w, video_h);
       frame_lock.Enter();
       try
         if (frame_buff <> NIL) then
@@ -3433,8 +3434,8 @@ begin
       finally
         frame_lock.Leave();
       end;
-      Bitmap.Assign(bmp);
-      FreeAndNil(bmp);
+      //Bitmap.Assign(bmp);
+      //FreeAndNil(bmp);
     end;
   end;
 end;
