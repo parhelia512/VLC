@@ -1,33 +1,33 @@
 (*
  * PasLibVlcClassUnit.pas
  *
- * Last modified: 2018.07.01
+ * Last modified: 2024.01.15
  *
- * author: Robert J�drzejczyk
+ * author: Robert Jędrzejczyk
  * e-mail: robert@prog.olsztyn.pl
  *    www: http://prog.olsztyn.pl/paslibvlc
  *
-  *******************************************************************************
+ *******************************************************************************
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Copyright (c) 2024 Robert Jędrzejczyk
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
  *
- * Any non-GPL usage of this software or parts of this software is strictly
- * forbidden.
- *
- * The "appropriate copyright message" mentioned in section 2c of the GPLv2
- * must read: "Code from FAAD2 is copyright (c) Nero AG, www.nero.com"
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *)
 
@@ -38,128 +38,182 @@ unit PasLibVlcClassUnit;
 interface
 
 uses
-  {$IFDEF UNIX} Unix, {$ENDIF}
-  {$IFDEF MSWINDOWS}Windows, {$ENDIF}
-  Classes, SysUtils, PasLibVlcUnit;
+  {$IFDEF UNIX}Unix,{$ENDIF}
+  {$IFDEF MSWINDOWS}Windows,{$ENDIF} 
+  Classes, SysUtils,
+  PasLibVlcUnit;
 
 type
   TDeinterlaceFilter = (deOFF, deON);
+  TDeinterlaceMode   = (dmDISCARD, dmBLEND, dmMEAN, dmBOB, dmLINEAR, dmX, dmYADIF, dmYADIF2x, dmPHOSPHOR, dmIVTC);
 
-  TDeinterlaceMode = (dmDISCARD, dmBLEND, dmMEAN, dmBOB, dmLINEAR, dmX, dmYADIF, dmYADIF2x, dmPHOSPHOR, dmIVTC);
-
-  TPasLibVlcTitlePosition = (plvPosCenter, plvPosLeft, plvPosRight, plvPosTop, plvPosTopLeft, plvPosTopRight, plvPosBottom, plvPosBottomLeft, plvPosBottomRight);
+  TPasLibVlcTitlePosition = (
+    plvPosCenter,
+    plvPosLeft,
+    plvPosRight,
+    plvPosTop,
+    plvPosTopLeft,
+    plvPosTopRight,
+    plvPosBottom,
+    plvPosBottomLeft,
+    plvPosBottomRight
+  );
 
   TVideoRatio = (ra_NONE, ra_16_9, ra_16_10, ra_185_100, ra_221_100, ra_235_100, ra_239_100, ra_4_3, ra_5_4, ra_5_3, ra_1_1);
 
   TMux = (muxTS, muxPS, muxMp4, muxOgg, muxAvi);
 
-  TVideoOutput = (voDefault
+  TVideoOutput = (
+    voDefault
     {$IFDEF DARWIN}, voMacOSX{$ENDIF}
     {$IFDEF UNIX}, voX11, voXVideo, voGlx{$ENDIF}
-    {$IFDEF MSWINDOWS}, voWinGdi, voDirectX, voDirect3d, voOpenGl{$ENDIF}, voDummy);
+    {$IFDEF MSWINDOWS}, voWinGdi, voDirectX, voDirect3d, voOpenGl{$ENDIF}
+    , voDummy
+  );
 
-  TAudioOutput = (aoDefault
+  TAudioOutput = (
+    aoDefault
     {$IFDEF DARWIN}, aoCoreAudio{$ENDIF}
     {$IFDEF UNIX}, aoOpenSystemSound, aoAdvancedLinuxSoundArchitecture, aoEnlightenedSoundDaemon, aoKdeSoundServer{$ENDIF}
-    {$IFDEF MSWINDOWS}, aoDirectX, aoWaveOut{$ENDIF}, aoDummy);
+    {$IFDEF MSWINDOWS}, aoDirectX, aoWaveOut{$ENDIF}
+    , aoDummy
+  );
 
   TVideoCodec = (vcNONE, vcMPGV, vcMP4V, vcH264, vcTHEORA);
-
+  
   TAudioCodec = (acNONE, acMPGA, acMP3, acMP4A, acVORB, acFLAC);
 
 const
   // http://www.videolan.org/doc/vlc-user-guide/en/ch02.html#id331515
-  vlcDeinterlaceModeNames: array[TDeinterlaceMode] of string = ('discard', 'blend', 'mean', 'bob', 'linear', 'x', 'yadif', 'yadif2x', 'phosphor', 'ivtc');
+  vlcDeinterlaceModeNames : array[TDeinterlaceMode] of string = (
+    'discard', 'blend', 'mean', 'bob', 'linear', 'x', 'yadif', 'yadif2x', 'phosphor', 'ivtc');
 
   // http://www.videolan.org/doc/vlc-user-guide/en/ch02.html#id328503
-  vlcMuxNames: array[TMux] of string = ('ts', 'ps', 'mp4', 'ogg', 'avi');
+  vlcMuxNames : array[TMux] of AnsiString = (
+    'ts', 'ps', 'mp4', 'ogg', 'avi');
 
   // http://www.videolan.org/doc/vlc-user-guide/en/ch02.html#id330667
-  vlcVideoOutputNames: array[TVideoOutput] of string =('default'
-    {$IFDEF DARWIN}, 'macosx' {$ENDIF} {$IFDEF UNIX}, 'x11', 'xvideo', 'glx' {$ENDIF}
-    {$IFDEF MSWINDOWS}, 'wingdi', 'directx', 'direct3d', 'opengl' {$ENDIF}, 'dummy');
+  vlcVideoOutputNames : array[TVideoOutput] of string = (
+    'default'
+    {$IFDEF DARWIN}, 'macosx' {$ENDIF}
+    {$IFDEF UNIX}, 'x11', 'xvideo', 'glx'{$ENDIF}
+    {$IFDEF MSWINDOWS}, 'wingdi', 'directx', 'direct3d', 'opengl'{$ENDIF}
+    , 'dummy'
+  );
+
   // http://www.videolan.org/doc/vlc-user-guide/en/ch02.html#id332336
-  vlcAudioOutputNames: array[TAudioOutput] of string =('default'
+  vlcAudioOutputNames : array[TAudioOutput] of string = (
+    'default'
     {$IFDEF DARWIN}, 'coreaudio'{$ENDIF}
     {$IFDEF UNIX}, 'oss', 'alsa', 'esd', 'arts'{$ENDIF}
-    {$IFDEF MSWINDOWS}, 'directx', 'waveout'{$ENDIF}, 'dummy');
-  vlcVideoRatioNames: array[TVideoRatio] of string = ('', '16:9', '16:10', '185:100', '221:100', '235:100', '239:100', '4:3', '5:4', '5:3', '1:1');
+    {$IFDEF MSWINDOWS}, 'directx', 'waveout'{$ENDIF}
+    , 'dummy'
+  );
+
+  vlcVideoRatioNames : array[TVideoRatio] of AnsiString = (
+    '', '16:9', '16:10', '185:100', '221:100', '235:100', '239:100', '4:3', '5:4', '5:3', '1:1');
 
   // http://www.videolan.org/doc/vlc-user-guide/en/ch02.html#id329971
-  vlcVideoCodecNames: array[TVideoCodec] of string = ('', 'mpgv', 'mp4v', 'mp4v', 'theora');
-  vlcAudioCodecNames: array[TAudioCodec] of string = ('', 'mpga', 'mp3', 'mp4a', 'vorb', 'flac');
+  vlcVideoCodecNames : array[TVideoCodec] of AnsiString = (
+    '', 'mpgv', 'mp4v', 'mp4v', 'theora');
+
+  vlcAudioCodecNames : array[TAudioCodec] of AnsiString = (
+    '', 'mpga', 'mp3', 'mp4a', 'vorb', 'flac');
 
 type
   TPasLibVlc = class
   private
-    FHandle: libvlc_instance_t_ptr;
-    FPath: WideString;
-    FTitleShow: Boolean;
-    FVersionBin: LongWord;
-    FStartOptions: TStringList;
-    function GetHandle(): libvlc_instance_t_ptr;
-    function GetError(): WideString;
-    function GetVersion(): WideString;
-    function GetVersionBin(): LongWord;
-    function GetCompiler(): WideString;
-    function GetChangeSet(): WideString;
+    FHandle : libvlc_instance_t_ptr;
+    FPath   : WideString;
+
+    FTitleShow : Boolean;
+
+    FVersionBin : LongWord;
+
+    FStartOptions : TStringList;
+
+    function GetHandle()     : libvlc_instance_t_ptr;
+    function GetError()      : WideString;
+    function GetVersion()    : WideString;
+    function GetVersionBin() : LongWord;
+    function GetCompiler()   : WideString;
+    function GetChangeSet()  : WideString;
+
     procedure SetPath(aPath: WideString);
   public
     constructor Create;
     destructor Destroy; override;
-    procedure AddOption(option: string);
-    property Handle: libvlc_instance_t_ptr read GetHandle;
-    property Error: WideString read GetError;
-    property Version: WideString read GetVersion;
-    property VersionBin: LongWord read GetVersionBin;
-    property Compiler: WideString read GetCompiler;
-    property ChangeSet: WideString read GetChangeSet;
-    property Path: WideString read FPath write SetPath;
-    property TitleShow: Boolean read FTitleShow write FTitleShow default FALSE;
-    property StartOptions: TStringList read FStartOptions;
+
+    procedure AddOption(option : string);
+    procedure DelOption(option : string);
+
+    property Handle     : libvlc_instance_t_ptr read GetHandle;
+    property Error      : WideString            read GetError;
+    property Version    : WideString            read GetVersion;
+    property VersionBin : LongWord              read GetVersionBin;
+    property Compiler   : WideString            read GetCompiler;
+    property ChangeSet  : WideString            read GetChangeSet;
+    property Path       : WideString            read FPath write SetPath;
+    property TitleShow  : Boolean               read FTitleShow write FTitleShow default FALSE;
+
+    property StartOptions : TStringList read FStartOptions;
   end;
 
 ////////////////////////////////////////////////////////////////////////////////
 
   TPasLibVlcMediaPlayerC = class;
-
   TPasLibVlcMediaListC = class;
-
+  
   TPasLibVlcMedia = class
   private
-    FVLC: TPasLibVlc;
-    FMD: libvlc_media_t_ptr;
+    FVLC : TPasLibVlc;
+    FMD  : libvlc_media_t_ptr;
   public
     constructor Create(aVLC: TPasLibVlc); overload;
     constructor Create(aVLC: TPasLibVlc; aMrl: WideString); overload;
     constructor Create(aVLC: TPasLibVlc; aMD: libvlc_media_t_ptr); overload;
-    constructor Create(aVLC: TPasLibVlc; aStm: TStream); overload;
+    constructor Create(aVLC: TPasLibVlc; aStm : TStream); overload;
     destructor Destroy; override;
+
     procedure NewLocation(mrl: WideString);
     procedure NewPath(path: WideString);
     procedure NewNode(name: WideString);
-    procedure NewStream(stm: TStream);
-    procedure AddOption(option: string);
-    procedure AddOptionFlag(option: string; flag: input_item_option_e);
+    procedure NewStream(stm : TStream);
+
+    procedure AddOption(option: WideString);
+    procedure AddOptionFlag(option: WideString; flag: input_item_option_e);
+
     function GetMrl(): WideString;
+
     function Duplicate(): TPasLibVlcMedia;
+
     function GetMeta(meta: libvlc_meta_t): WideString;
     procedure SetMeta(meta: libvlc_meta_t; value: WideString);
     procedure SaveMeta();
+
     function GetState(): libvlc_state_t;
     function GetStats(var stats: libvlc_media_stats_t): Boolean;
+
     function SubItems(): TPasLibVlcMediaListC;
+
     function GetEventManager(): libvlc_event_manager_t_ptr;
+
     function GetDuration(): libvlc_time_t;
+
     procedure Parse();
     procedure ParseAsync();
+
     function IsParsed(): Boolean;
+
     procedure SetUserData(data: Pointer);
     function GetUserData(): Pointer;
-    function GetTracksInfo(var tracks: libvlc_media_track_info_t_ptr): Integer;
+
+    function GetTracksInfo(var tracks : libvlc_media_track_info_t_ptr): Integer;
+
     procedure SetDeinterlaceFilter(aValue: TDeinterlaceFilter);
     procedure SetDeinterlaceFilterMode(aValue: TDeinterlaceMode);
-    property MD: libvlc_media_t_ptr read FMD;
+    
+    property MD : libvlc_media_t_ptr read FMD;
   end;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -167,71 +221,84 @@ type
   TPasLibVlcMediaListC = class
   private
     FVLC: TPasLibVlc;
-    FML: libvlc_media_list_t_ptr;
+    FML:  libvlc_media_list_t_ptr;
+
     FMP: TPasLibVlcMediaPlayerC;
   public
     constructor Create(aVLC: TPasLibVlc); overload;
     constructor Create(aVLC: TPasLibVlc; aML: libvlc_media_list_t_ptr); overload;
     destructor Destroy; override;
+
     procedure SetMedia(media: TPasLibVlcMedia);
-    function GetMedia(): TPasLibVlcMedia; overload;
+    function GetMedia(): TPasLibVlcMedia;               overload;
     function GetMedia(index: Integer): TPasLibVlcMedia; overload;
     function GetIndex(media: TPasLibVlcMedia): Integer;
     function IsReadOnly(): Boolean;
+
     procedure Add(mrl: WideString); overload;
     procedure Add(media: TPasLibVlcMedia); overload;
     procedure Insert(media: TPasLibVlcMedia; index: Integer);
     procedure Delete(index: Integer);
     procedure Clear();
     function Count(): Integer;
+
     procedure Lock();
     procedure UnLock();
+
     function GetEventManager(): libvlc_event_manager_t_ptr;
-    property ML: libvlc_media_list_t_ptr read FML;
-    property MI: TPasLibVlcMediaPlayerC read FMP write FMP;
+
+    property ML : libvlc_media_list_t_ptr read FML;
+    property MI : TPasLibVlcMediaPlayerC read FMP write FMP;
   end;
 
 ////////////////////////////////////////////////////////////////////////////////
 
   TPasLibVlcMediaPlayerC = class
   private
-    FTitleShow: Boolean;
-    FVideoOnTop: Boolean;
-    FUseOverlay: Boolean;
-    FSnapShotFmt: string;
+    FTitleShow   : Boolean;
+    FVideoOnTop  : Boolean;
+    FUseOverlay  : Boolean;
+    FSnapShotFmt : string;
+
     FDeinterlaceFilter: TDeinterlaceFilter;
-    FDeinterlaceMode: TDeinterlaceMode;
+    FDeinterlaceMode:   TDeinterlaceMode;
+
   public
-    property TitleShow: Boolean read FTitleShow write FTitleShow default FALSE;
-    property VideoOnTop: Boolean read FVideoOnTop write FVideoOnTop default FALSE;
-    property UseOverlay: Boolean read FUseOverlay write FUseOverlay default FALSE;
-    property SnapShotFmt: string read FSnapShotFmt write FSnapShotFmt;
+    property TitleShow   : Boolean read FTitleShow   write FTitleShow  default FALSE;
+    property VideoOnTop  : Boolean read FVideoOnTop  write FVideoOnTop default FALSE;
+    property UseOverlay  : Boolean read FUseOverlay  write FUseOverlay default FALSE;
+    property SnapShotFmt : string  read FSnapShotFmt write FSnapShotFmt;
     property DeinterlaceFilter: TDeinterlaceFilter read FDeinterlaceFilter write FDeinterlaceFilter default deOFF;
-    property DeinterlaceMode: TDeinterlaceMode read FDeinterlaceMode write FDeinterlaceMode default dmDISCARD;
+    property DeinterlaceMode:   TDeinterlaceMode   read FDeinterlaceMode   write FDeinterlaceMode   default dmDISCARD;
   end;
 
 ////////////////////////////////////////////////////////////////////////////////
 
   TPasLibVlcEqualizer = class
   private
-    FVLC: TPasLibVlc;
-    FEqualizer: libvlc_equalizer_t_ptr;
-    FPreset: Word;
+    FVLC       : TPasLibVlc;
+    FEqualizer : libvlc_equalizer_t_ptr;
+    FPreset    : Word;
   public
-    constructor Create(AVLC: TPasLibVlc; APreset: unsigned_t = $FFFF);
+    constructor Create(AVLC: TPasLibVlc; APreset : unsigned_t = $FFFF);
     destructor Destroy; override;
-    function GetPreAmp(): Single;
-    procedure SetPreAmp(value: Single);
-    function GetAmp(index: unsigned_t): Single;
-    procedure SetAmp(index: unsigned_t; value: Single);
-    function GetBandCount(): unsigned_t;
-    function GetBandFrequency(index: unsigned_t): Single;
-    function GetPresetCount(): unsigned_t;
-    function GetPresetName(index: unsigned_t): WideString; overload;
-    function GetPresetName(): WideString; overload;
-    function GetPreset(): unsigned_t;
-    procedure SetPreset(APreset: unsigned_t = $FFFF);
-    function GetHandle(): libvlc_equalizer_t_ptr;
+
+    function GetPreAmp() : Single;
+    procedure SetPreAmp(value : Single);
+
+    function GetAmp(index: unsigned_t) :  Single;
+    procedure SetAmp(index : unsigned_t; value : Single);
+
+    function GetBandCount() : unsigned_t;
+    function GetBandFrequency(index : unsigned_t) : Single;
+
+    function GetPresetCount() : unsigned_t;
+    function GetPresetName(index : unsigned_t) : WideString; overload;
+    function GetPresetName() : WideString; overload;
+    function GetPreset() : unsigned_t;
+    procedure SetPreset(APreset : unsigned_t = $FFFF);
+
+    function GetHandle() : libvlc_equalizer_t_ptr;
   end;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -240,17 +307,17 @@ implementation
 
 {$IFDEF DELPHI_XE6_UP}
 uses
-  System.AnsiStrings;
+	System.AnsiStrings;
 {$ENDIF}
 
 constructor TPasLibVlc.Create;
 begin
   inherited Create;
-
-  FHandle := NIL;
-  FTitleShow := FALSE;
+  
+  FHandle       := NIL;
+  FTitleShow    := FALSE;
   FStartOptions := TStringList.Create;
-  FVersionBin := 0;
+  FVersionBin   := 0;
 end;
 
 destructor TPasLibVlc.Destroy;
@@ -270,7 +337,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TPasLibVlc.AddOption(option: string);
+procedure TPasLibVlc.AddOption(option : string);
 begin
   if (option <> '') and (FStartOptions.IndexOf(option) < 0) then
   begin
@@ -278,32 +345,48 @@ begin
   end;
 end;
 
+procedure TPasLibVlc.DelOption(option : string);
+var
+  Index : Integer;
+begin
+  if (option <> '')  then
+  begin
+    Index := FStartOptions.IndexOf(option);
+    if (Index >= 0)  then
+    begin
+      FStartOptions.Delete(Index);
+    end;
+  end;
+end;
+
 {$WARNINGS OFF}
 {$HINTS OFF}
-function TPasLibVlc.GetHandle(): libvlc_instance_t_ptr;
+function TPasLibVlc.GetHandle() : libvlc_instance_t_ptr;
 begin
-  Result := nil;
-  if (FHandle = nil) then
+  Result := NIL;
+  if (FHandle = NIL) then
   begin
     if (FPath <> '') then
     begin
       libvlc_dynamic_dll_init_with_path(FPath);
-      if (libvlc_dynamic_dll_error <> '') then
-        libvlc_dynamic_dll_init();
+      if (libvlc_dynamic_dll_error <> '') then libvlc_dynamic_dll_init();
     end
     else
     begin
       libvlc_dynamic_dll_init();
     end;
-    if (libvlc_dynamic_dll_error <> '') then
-      Exit;
+    if (libvlc_dynamic_dll_error <> '') then exit;
 
-    with TArgcArgs.Create([libvlc_dynamic_dll_path, '--ignore-config', '--intf=dummy', '--quiet'
-      //'--telnet-host=localhost',
-      //'--telnet-port=4212',
-      //'--telnet-password=test'
-      //'--extraintf=telnet',
-      ]) do
+    with TArgcArgs.Create([
+      libvlc_dynamic_dll_path,
+      '--ignore-config',
+      '--intf=dummy',
+      '--quiet'
+//'--telnet-host=localhost',
+//'--telnet-port=4212',
+//'--telnet-password=test'
+//'--extraintf=telnet',
+    ]) do
     begin
 
       // AddArg('--no-one-instance');
@@ -327,7 +410,6 @@ begin
       begin
         AddArg('--sub-filter=logo:marq');
       end;
-
       if (VersionBin >= $020000) then
       begin
         AddArg('--sub-source=marq');
@@ -343,26 +425,35 @@ end;
 {$WARNINGS ON}
 {$HINTS ON}
 
-function TPasLibVlc.GetError(): WideString;
+function TPasLibVlc.GetError() : WideString;
 begin
   Result := '';
-  if Assigned(libvlc_errmsg) then
-    Result := {$IFDEF DELPHI_XE2_UP}UTF8ToWideString{$ELSE}UTF8Decode{$ENDIF}(AnsiString(libvlc_errmsg()))
+  if (libvlc_dynamic_dll_error <> '') then
+  begin
+    Result := libvlc_dynamic_dll_error;
+  end
+  else
+  begin
+    if Assigned(libvlc_errmsg) then
+    begin
+      Result := {$IFDEF DELPHI_XE2_UP}UTF8ToWideString{$ELSE}UTF8Decode{$ENDIF}(AnsiString(libvlc_errmsg()))
+    end;
+  end;
 end;
 
-function TPasLibVlc.GetVersion(): WideString;
+function TPasLibVlc.GetVersion() : WideString;
 begin
   Result := '';
   if Assigned(libvlc_get_version) then
     Result := {$IFDEF DELPHI_XE2_UP}UTF8ToWideString{$ELSE}UTF8Decode{$ENDIF}(AnsiString(libvlc_get_version()));
 end;
-
-function TPasLibVlc.GetVersionBin(): LongWord;
+  
+function TPasLibVlc.GetVersionBin() : LongWord;
 var
-  ver_utf8: PAnsiChar;
-  ver_numa: LongWord;
-  ver_numb: LongWord;
-  ver_numc: LongWord;
+  ver_utf8 : PAnsiChar;
+  ver_numa : LongWord;
+  ver_numb : LongWord;
+  ver_numc : LongWord;
 begin
   if (FVersionBin = 0) then
   begin
@@ -378,14 +469,14 @@ begin
   Result := FVersionBin;
 end;
 
-function TPasLibVlc.GetCompiler(): WideString;
+function TPasLibVlc.GetCompiler() : WideString;
 begin
   Result := '';
   if Assigned(libvlc_get_compiler) then
     Result := {$IFDEF DELPHI_XE2_UP}UTF8ToWideString{$ELSE}UTF8Decode{$ENDIF}(AnsiString(libvlc_get_compiler()));
 end;
 
-function TPasLibVlc.GetChangeSet(): WideString;
+function TPasLibVlc.GetChangeSet() : WideString;
 begin
   Result := '';
   if Assigned(libvlc_get_changeset) then
@@ -403,14 +494,14 @@ constructor TPasLibVlcMedia.Create(aVLC: TPasLibVlc);
 begin
   inherited Create;
   FVLC := aVLC;
-  FMD := NIL;
+  FMD  := NIL;
 end;
 
 constructor TPasLibVlcMedia.Create(aVlc: TPasLibVlc; aMrl: WideString);
 begin
   inherited Create;
-  FVLC := aVlc;
-  FMD := NIL;
+  FVLC := aVLC;
+  FMD  := NIL;
 
   if FileExists(aMrl) then
     NewPath(aMrl)
@@ -418,18 +509,18 @@ begin
     NewLocation(aMrl);
 end;
 
-constructor TPasLibVlcMedia.Create(aVlc: TPasLibVlc; aMD: libvlc_media_t_ptr);
+constructor TPasLibVlcMedia.Create(aVlc : TPasLibVlc; aMD : libvlc_media_t_ptr);
 begin
   inherited Create;
-  FVLC := aVlc;
-  FMD := aMD;
+  FVLC := aVLC;
+  FMD  := aMD;
 end;
 
-constructor TPasLibVlcMedia.Create(aVlc: TPasLibVlc; aStm: TStream);
+constructor TPasLibVlcMedia.Create(aVlc : TPasLibVlc; aStm : TStream);
 begin
   inherited Create;
-  FVLC := aVlc;
-  FMD := NIL;
+  FVLC := aVLC;
+  FMD  := NIL;
   NewStream(aStm);
 end;
 
@@ -442,19 +533,17 @@ begin
   inherited Destroy;
 end;
 
-procedure TPasLibVlcMedia.SetDeinterlaceFilter(aValue: TDeinterlaceFilter);
+procedure TPasLibVlcMedia.SetDeinterlaceFilter(aValue : TDeinterlaceFilter);
 begin
   case aValue of
-    deOFF:
-      AddOption('deinterlace=0');
-    deON:
-      AddOption('deinterlace=1');
+    deOFF:  AddOption('deinterlace=0');
+    deON:   AddOption('deinterlace=1');
   end;
 end;
 
-procedure TPasLibVlcMedia.SetDeinterlaceFilterMode(aValue: TDeinterlaceMode);
+procedure TPasLibVlcMedia.SetDeinterlaceFilterMode(aValue : TDeinterlaceMode);
 begin
-  AddOption('deinterlace-mode=' + vlcDeinterlaceModeNames[aValue]);
+  AddOption('deinterlace-mode=' + WideString(vlcDeinterlaceModeNames[aValue]));
 end;
 
 // media.AddOption('http-caching=1000');
@@ -476,25 +565,25 @@ end;
 // no display, file with transcode to mp4
 //  media.AddOption(':sout=#transcode{vcodec=h264,vb=1024,fps=25,scale=1,acodec=mp3}:std{access=file,mux=mp4,dst="c:\test.mp4"}');
 
-procedure TPasLibVlcMedia.AddOption(option: string);
+procedure TPasLibVlcMedia.AddOption(option: WideString);
 var
-  temp: string;
+  temp : AnsiString;
 begin
   if (FMD <> NIL) then
   begin
-    temp := Trim(option);
+    temp := Utf8Encode(Trim(option));
     if (temp <> '') then
     begin
-      libvlc_media_add_option(FMD, PAnsiChar(AnsiString(temp)));
+      libvlc_media_add_option(FMD, PAnsiChar(temp));
     end;
   end;
 end;
 
-procedure TPasLibVlcMedia.AddOptionFlag(option: string; flag: input_item_option_e);
+procedure TPasLibVlcMedia.AddOptionFlag(option: WideString; flag: input_item_option_e);
 begin
   if (FMD <> NIL) then
   begin
-    libvlc_media_add_option_flag(FMD, PAnsiChar(AnsiString(option)), flag);
+    libvlc_media_add_option_flag(FMD, PAnsiChar(UTF8Encode(option)), flag);
   end;
 end;
 
@@ -526,7 +615,14 @@ procedure TPasLibVlcMedia.NewStream(stm: TStream);
 begin
   if (FVLC.Handle <> NIL) then
   begin
-    FMD := libvlc_media_new_callbacks(FVLC.FHandle, libvlc_media_open_cb_stm, libvlc_media_read_cb_stm, libvlc_media_seek_cb_stm, libvlc_media_close_cb_stm, Pointer(stm));
+    FMD := libvlc_media_new_callbacks(
+      FVLC.FHandle,
+      libvlc_media_open_cb_stm,
+      libvlc_media_read_cb_stm,
+      libvlc_media_seek_cb_stm,
+      libvlc_media_close_cb_stm,
+      Pointer(stm)
+    );
   end;
 end;
 
@@ -544,10 +640,8 @@ end;
 
 function TPasLibVlcMedia.Duplicate(): TPasLibVlcMedia;
 begin
-  if (FMD = NIL) then
-    Result := TPasLibVlcMedia.Create(FVLC)
-  else
-    Result := TPasLibVlcMedia.Create(FVLC, libvlc_media_duplicate(FMD));
+  if (FMD = NIL) then Result := TPasLibVlcMedia.Create(FVLC)
+  else Result := TPasLibVlcMedia.Create(FVLC, libvlc_media_duplicate(FMD));
 end;
 
 function TPasLibVlcMedia.GetMeta(meta: libvlc_meta_t): WideString;
@@ -572,12 +666,15 @@ end;
 
 function TPasLibVlcMedia.GetStats(var stats: libvlc_media_stats_t): Boolean;
 begin
-  Result := (libvlc_media_get_stats(FMD, @stats) <> 0);
+  Result := (libvlc_media_get_stats(FMD, @stats ) <> 0);
 end;
 
 function TPasLibVlcMedia.SubItems(): TPasLibVlcMediaListC;
 begin
-  Result := TPasLibVlcMediaListC.Create(FVLC, libvlc_media_subitems(FMD));
+  Result := TPasLibVlcMediaListC.Create(
+    FVLC,
+    libvlc_media_subitems(FMD)
+  );
 end;
 
 function TPasLibVlcMedia.GetEventManager(): libvlc_event_manager_t_ptr;
@@ -615,7 +712,7 @@ begin
   Result := libvlc_media_get_user_data(FMD);
 end;
 
-function TPasLibVlcMedia.GetTracksInfo(var tracks: libvlc_media_track_info_t_ptr): Integer;
+function TPasLibVlcMedia.GetTracksInfo(var tracks : libvlc_media_track_info_t_ptr): Integer;
 begin
   Result := libvlc_media_get_tracks_info(FMD, tracks);
 end;
@@ -626,14 +723,14 @@ constructor TPasLibVlcMediaListC.Create(aVLC: TPasLibVlc);
 begin
   inherited Create;
   FVLC := aVLC;
-  FML := libvlc_media_list_new(FVLC.Handle);
+  FML  := libvlc_media_list_new(FVLC.Handle);
 end;
 
 constructor TPasLibVlcMediaListC.Create(aVLC: TPasLibVlc; aML: libvlc_media_list_t_ptr);
 begin
   inherited Create;
-  FVLC := aVLC;
-  FML := aML;
+  FVLC    := aVLC;
+  FML     := aML;
 end;
 
 destructor TPasLibVlcMediaListC.Destroy;
@@ -642,7 +739,7 @@ begin
   begin
     libvlc_media_list_release(FML);
   end;
-
+  
   inherited Destroy;
 end;
 
@@ -658,12 +755,18 @@ end;
 
 function TPasLibVlcMediaListC.GetMedia(index: Integer): TPasLibVlcMedia;
 begin
-  Result := TPasLibVlcMedia.Create(FVLC, libvlc_media_list_item_at_index(FML, index));
+  Result := TPasLibVlcMedia.Create(
+    FVLC,
+    libvlc_media_list_item_at_index(FML, index)
+  );
 end;
 
 function TPasLibVlcMediaListC.GetIndex(media: TPasLibVlcMedia): Integer;
 begin
-  Result := libvlc_media_list_index_of_item(FML, media.MD);
+  Result := libvlc_media_list_index_of_item(
+    FML,
+    media.MD
+  );
 end;
 
 function TPasLibVlcMediaListC.IsReadOnly(): Boolean;
@@ -743,12 +846,12 @@ end;
 
 ////////////////////////////////////////////////////////////////////////////////
 
-constructor TPasLibVlcEqualizer.Create(AVLC: TPasLibVlc; aPreset: unsigned_t = $FFFF);
+constructor TPasLibVlcEqualizer.Create(AVLC: TPasLibVlc; aPreset : unsigned_t = $FFFF);
 begin
   inherited Create;
-  FVLC := AVLC;
+  FVLC       := AVLC;
   FEqualizer := NIL;
-  FPreset := aPreset;
+  FPreset    := aPreset;
 end;
 
 destructor TPasLibVlcEqualizer.Destroy;
@@ -761,84 +864,76 @@ begin
   inherited Destroy;
 end;
 
-function TPasLibVlcEqualizer.GetPreAmp(): Single;
+function TPasLibVlcEqualizer.GetPreAmp() : Single;
 begin
   Result := 0;
-  if (SELF.GetHandle() = NIL) then
-    exit;
+  if (SELF.GetHandle() = NIL) then exit;
   Result := libvlc_audio_equalizer_get_preamp(FEqualizer);
 end;
 
-procedure TPasLibVlcEqualizer.SetPreAmp(value: Single);
+procedure TPasLibVlcEqualizer.SetPreAmp(value : Single);
 begin
-  if (SELF.GetHandle() = NIL) then
-    exit;
+  if (SELF.GetHandle() = NIL) then exit;
   libvlc_audio_equalizer_set_preamp(FEqualizer, value);
 end;
 
-function TPasLibVlcEqualizer.GetAmp(index: unsigned_t): Single;
+function TPasLibVlcEqualizer.GetAmp(index: unsigned_t) :  Single;
 begin
   Result := 0;
-  if (SELF.GetHandle() = NIL) then
-    exit;
+  if (SELF.GetHandle() = NIL) then exit;
   Result := libvlc_audio_equalizer_get_amp_at_index(FEqualizer, index);
 end;
 
-procedure TPasLibVlcEqualizer.SetAmp(index: unsigned_t; value: Single);
+procedure TPasLibVlcEqualizer.SetAmp(index : unsigned_t; value : Single);
 begin
-  if (SELF.GetHandle() = NIL) then
-    exit;
+  if (SELF.GetHandle() = NIL) then exit;
   libvlc_audio_equalizer_set_amp_at_index(FEqualizer, value, index);
 end;
 
-function TPasLibVlcEqualizer.GetBandCount(): unsigned_t;
+function TPasLibVlcEqualizer.GetBandCount() : unsigned_t;
 begin
   Result := 0;
-  if (FVLC.GetHandle() = NIL) then
-    exit;
+  if (FVLC.GetHandle() = NIL) then exit;  
   Result := libvlc_audio_equalizer_get_band_count();
 end;
 
-function TPasLibVlcEqualizer.GetBandFrequency(index: unsigned_t): Single;
+function TPasLibVlcEqualizer.GetBandFrequency(index : unsigned_t) : Single;
 begin
   Result := 0;
-  if (FVLC.GetHandle() = NIL) then
-    exit;
+  if (FVLC.GetHandle() = NIL) then exit;
   Result := libvlc_audio_equalizer_get_band_frequency(index);
 end;
 
-function TPasLibVlcEqualizer.GetPresetCount(): unsigned_t;
+function TPasLibVlcEqualizer.GetPresetCount() : unsigned_t;
 begin
   Result := 0;
-  if (FVLC.GetHandle() = NIL) then
-    exit;
+  if (FVLC.GetHandle() = NIL) then exit;
   Result := libvlc_audio_equalizer_get_preset_count();
 end;
 
-function TPasLibVlcEqualizer.GetPresetName(index: unsigned_t): WideString;
+function TPasLibVlcEqualizer.GetPresetName(index : unsigned_t) : WideString;
 var
-  preset: PAnsiChar;
+  preset : PAnsiChar;
 begin
   Result := '';
-  if (FVLC.GetHandle() = NIL) then
-    exit;
+  if (FVLC.GetHandle() = NIL) then exit;
   preset := libvlc_audio_equalizer_get_preset_name(index);
   Result := {$IFDEF DELPHI_XE2_UP}UTF8ToWideString{$ELSE}UTF8Decode{$ENDIF}(preset);
 end;
 
-function TPasLibVlcEqualizer.GetPresetName(): WideString;
+function TPasLibVlcEqualizer.GetPresetName() : WideString;
 begin
   Result := GetPresetName(FPreset);
 end;
 
-function TPasLibVlcEqualizer.GetPreset(): unsigned_t;
+function TPasLibVlcEqualizer.GetPreset() : unsigned_t;
 begin
   Result := FPreset;
 end;
 
-procedure TPasLibVlcEqualizer.SetPreset(APreset: unsigned_t = $FFFF);
+procedure TPasLibVlcEqualizer.SetPreset(APreset : unsigned_t = $FFFF);
 begin
-  FPreset := APreset;
+  FPreset := aPreset;
   if (FEqualizer <> NIL) then
   begin
     libvlc_audio_equalizer_release(FEqualizer);
@@ -846,15 +941,14 @@ begin
   end;
 end;
 
-function TPasLibVlcEqualizer.GetHandle(): libvlc_equalizer_t_ptr;
+function TPasLibVlcEqualizer.GetHandle() : libvlc_equalizer_t_ptr;
 begin
   Result := NIL;
-  if (FVLC.GetHandle() = NIL) then
-    exit;
-
+  if (FVLC.GetHandle() = NIL) then exit;
+  
   if (FEqualizer = NIL) then
   begin
-    if (FPreset <> $FFFF) then
+    if (FPreset<> $FFFF) then
     begin
       FEqualizer := libvlc_audio_equalizer_new_from_preset(FPreset);
     end;
@@ -867,4 +961,3 @@ begin
 end;
 
 end.
-

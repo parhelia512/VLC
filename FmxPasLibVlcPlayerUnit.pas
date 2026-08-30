@@ -57,8 +57,9 @@ unit FmxPasLibVlcPlayerUnit;
 interface
 
 uses
-  {$IFDEF UNIX}               Unix, {$ENDIF}
-  {$IFDEF MSWINDOWS}Windows, {$ENDIF}
+  //{$IFDEF UNIX}               Unix, {$ENDIF}
+  {$IFDEF MSWINDOWS}
+  Windows, {$ENDIF}
   Classes, SysUtils, SyncObjs, FMX.Types, FMX.Objects, FMX.Graphics,
   System.UITypes, PasLibVlcClassUnit, PasLibVlcUnit;
 
@@ -481,6 +482,7 @@ implementation
 {$R *.RES}
 
 {$IFDEF DELPHI_XE6_UP}
+
 uses
   System.AnsiStrings;
 {$ENDIF}
@@ -530,11 +532,11 @@ begin
 
   FViewTeleText := FALSE;
 
-  p_mi := NIL;
-  p_mi_ev_mgr := NIL;
+  p_mi := nil;
+  p_mi_ev_mgr := nil;
   FMute := FALSE;
-  FVLC := NIL;
-  p_mi := NIL;
+  FVLC := nil;
+  p_mi := nil;
 
   FUseEvents := TRUE;
 
@@ -550,17 +552,17 @@ begin
   EventsDisable();
   Sleep(50);
 
-  if (p_mi <> NIL) then
+  if (p_mi <> nil) then
   begin
 
-    libvlc_video_set_callbacks(p_mi, NIL, NIL, NIL, NIL);
-    libvlc_video_set_format_callbacks(p_mi, NIL, NIL);
+    libvlc_video_set_callbacks(p_mi, nil, nil, nil, nil);
+    libvlc_video_set_format_callbacks(p_mi, nil, nil);
 
     Stop();
 
     libvlc_media_player_release(p_mi);
 
-    p_mi := NIL;
+    p_mi := nil;
   end;
 
   Sleep(50);
@@ -587,7 +589,7 @@ begin
 
   EventsDisable();
 
-  if (p_mi <> NIL) then
+  if (p_mi <> nil) then
   begin
     p_mi_ev_mgr := libvlc_media_player_event_manager(p_mi);
 
@@ -675,7 +677,7 @@ begin
     libvlc_event_detach(p_mi_ev_mgr, libvlc_MediaPlayerNothingSpecial, fmx_lib_vlc_player_event_hdlr, SELF);
     libvlc_event_detach(p_mi_ev_mgr, libvlc_MediaPlayerMediaChanged, fmx_lib_vlc_player_event_hdlr, SELF);
 
-    p_mi_ev_mgr := NIL;
+    p_mi_ev_mgr := nil;
   end;
 end;
 
@@ -715,7 +717,7 @@ end;
 
 procedure TFmxPasLibVlcPlayer.UpdateTitleShow();
 begin
-  if (p_mi <> NIL) and (VLC.VersionBin >= $020100) then
+  if (p_mi <> nil) and (VLC.VersionBin >= $020100) then
   begin
     if FTitleShow then
     begin
@@ -789,7 +791,7 @@ procedure TFmxPasLibVlcPlayer.UpdateDeInterlace();
 var
   dm: string;
 begin
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
 
   if (FDeinterlaceFilter = deON) then
@@ -807,7 +809,7 @@ begin
   end
   else
   begin
-    libvlc_video_set_deinterlace(p_mi, NIL);
+    libvlc_video_set_deinterlace(p_mi, nil);
   end;
 end;
 
@@ -899,18 +901,18 @@ var
   p_instance: libvlc_instance_t_ptr;
 begin
 
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
   begin
     // get instance
     p_instance := VLC.Handle;
 
-    if (p_instance <> NIL) then
+    if (p_instance <> nil) then
     begin
       // create media player
       p_mi := libvlc_media_player_new(p_instance);
 
       // handling mouse events by vlc ???
-      if (p_mi <> NIL) then
+      if (p_mi <> nil) then
       begin
 //        libvlc_video_set_mouse_input(p_mi, 1);
 //        libvlc_video_set_key_input(p_mi, 1);
@@ -989,7 +991,7 @@ begin
 
   // release media
   media.Free;
-  media := NIL;
+  media := nil;
 
   UpdateTitleShow();
 
@@ -1058,7 +1060,7 @@ var
 begin
   GetPlayerHandle();
 
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
 
   Stop();
@@ -1083,7 +1085,7 @@ var
 begin
   GetPlayerHandle();
 
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
 
   // create media
@@ -1133,14 +1135,14 @@ var
 begin
   mrl := '';
 
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
 
   p_md := libvlc_media_player_get_media(p_mi);
-  if (p_md <> NIL) then
+  if (p_md <> nil) then
   begin
     p_ml := libvlc_media_subitems(p_md);
-    if (p_ml <> NIL) then
+    if (p_ml <> nil) then
     begin
       libvlc_media_list_lock(p_ml);
       cnt := libvlc_media_list_count(p_ml);
@@ -1200,14 +1202,14 @@ var
   sub_p_md: libvlc_media_t_ptr;
   cnt: Integer;
 begin
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
 
   p_md := libvlc_media_player_get_media(p_mi);
-  if (p_md <> NIL) then
+  if (p_md <> nil) then
   begin
     p_ml := libvlc_media_subitems(p_md);
-    if (p_ml <> NIL) then
+    if (p_ml <> nil) then
     begin
       libvlc_media_list_lock(p_ml);
       cnt := libvlc_media_list_count(p_ml);
@@ -1230,7 +1232,7 @@ end;
 
 procedure TFmxPasLibVlcPlayer.Pause();
 begin
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
 
   if (GetState() = plvPlayer_Playing) then
@@ -1241,7 +1243,7 @@ end;
 
 procedure TFmxPasLibVlcPlayer.Resume();
 begin
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
 
   //if (GetState() = plvPlayer_Paused) then
@@ -1269,7 +1271,14 @@ begin
   Pause();
   if IsPlay() then
   begin
-    libvlc_media_player_stop(p_mi);
+    if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_040000) then
+    begin
+      libvlc_media_player_stop(p_mi);
+    end
+    else
+    begin
+      libvlc_media_player_stop_async(p_mi);
+    end;
     Sleep(TIME_STEP);
     timeElapsed := TIME_STEP;
     while IsPlay() do
@@ -1298,7 +1307,7 @@ function TFmxPasLibVlcPlayer.GetState(): TFmxPasLibVlcPlayerState;
 begin
   Result := plvPlayer_NothingSpecial;
 
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
 
   case libvlc_media_player_get_state(p_mi) of
@@ -1323,7 +1332,7 @@ end;
 
 function TFmxPasLibVlcPlayer.GetStateName(): string;
 begin
-  if (p_mi <> NIL) then
+  if (p_mi <> nil) then
   begin
     case GetState of
       plvPlayer_NothingSpecial:
@@ -1413,7 +1422,7 @@ end;
 function TFmxPasLibVlcPlayer.GetVideoScaleInPercent(): Single;
 begin
   Result := -1;
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   Result := libvlc_video_get_scale(p_mi) * 100;
 end;
@@ -1427,7 +1436,7 @@ end;
 
 procedure TFmxPasLibVlcPlayer.SetVideoScaleInPercent(newScaleInPercent: Single);
 begin
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   libvlc_video_set_scale(p_mi, newScaleInPercent / 100);
 end;
@@ -1437,10 +1446,10 @@ var
   libvlcaspect: PAnsiChar;
 begin
   Result := '';
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   libvlcaspect := libvlc_video_get_aspect_ratio(p_mi);
-  if (libvlcaspect <> NIL) then
+  if (libvlcaspect <> nil) then
   begin
     Result := UTF8ToWideString(AnsiString(libvlcaspect));
     libvlc_free(libvlcaspect);
@@ -1457,7 +1466,7 @@ var
   track_record: libvlc_media_track_t_ptr;
 begin
   Result := FALSE;
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   md := libvlc_media_player_get_media(p_mi);
   tracks_count := libvlc_media_tracks_get(md, tracks_ptr);
@@ -1504,7 +1513,7 @@ end;
 function TFmxPasLibVlcPlayer.GetVideoLenInMs(): Int64;
 begin
   Result := 0;
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   Result := libvlc_media_player_get_length(p_mi);
 end;
@@ -1525,7 +1534,7 @@ end;
 function TFmxPasLibVlcPlayer.GetVideoPosInMs(): Int64;
 begin
   Result := 0;
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   Result := libvlc_media_player_get_time(p_mi);
 end;
@@ -1546,7 +1555,7 @@ end;
 
 procedure TFmxPasLibVlcPlayer.SetVideoPosInMs(newPos: Int64);
 begin
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   libvlc_media_player_set_time(p_mi, newPos);
   if (GetState() <> plvPlayer_Playing) then
@@ -1562,7 +1571,7 @@ end;
 function TFmxPasLibVlcPlayer.GetVideoPosInPercent(): Single;
 begin
   Result := 0;
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   Result := libvlc_media_player_get_position(p_mi) * 100;
 end;
@@ -1575,7 +1584,7 @@ end;
 
 procedure TFmxPasLibVlcPlayer.SetVideoPosInPercent(newPos: Single);
 begin
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   libvlc_media_player_set_position(p_mi, newPos / 100);
   if (GetState() <> plvPlayer_Playing) then
@@ -1590,7 +1599,7 @@ end;
 function TFmxPasLibVlcPlayer.GetVideoFps(): Single;
 begin
   Result := -1;
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   Result := libvlc_media_player_get_fps(p_mi);
 end;
@@ -1602,7 +1611,7 @@ end;
 function TFmxPasLibVlcPlayer.CanPlay(): Boolean;
 begin
   Result := FALSE;
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   Result := (libvlc_media_player_will_play(p_mi) > 0);
 end;
@@ -1614,7 +1623,7 @@ end;
 function TFmxPasLibVlcPlayer.CanPause(): Boolean;
 begin
   Result := FALSE;
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   Result := (libvlc_media_player_can_pause(p_mi) > 0);
 end;
@@ -1626,7 +1635,7 @@ end;
 function TFmxPasLibVlcPlayer.CanSeek(): Boolean;
 begin
   Result := FALSE;
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   Result := (libvlc_media_player_is_seekable(p_mi) > 0);
 end;
@@ -1637,7 +1646,7 @@ end;
 function TFmxPasLibVlcPlayer.HasVout(): Boolean;
 begin
   Result := FALSE;
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   Result := (libvlc_media_player_has_vout(p_mi) > 0);
 end;
@@ -1648,7 +1657,7 @@ end;
 function TFmxPasLibVlcPlayer.IsScrambled(): Boolean;
 begin
   Result := FALSE;
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   Result := (libvlc_media_player_program_scrambled(p_mi) > 0)
 end;
@@ -1663,7 +1672,7 @@ var
   i_width, i_height: LongWord;
 begin
   Result := FALSE;
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   i_width := 0;
   i_height := 0;
@@ -1681,14 +1690,14 @@ end;
 function TFmxPasLibVlcPlayer.Snapshot(fileName: WideString; width, height: LongWord): Boolean;
 begin
   Result := FALSE;
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   Result := (libvlc_video_take_snapshot(p_mi, 0, PAnsiChar(Utf8Encode(fileName)), width, height) = 0);
 end;
 
 procedure TFmxPasLibVlcPlayer.NextFrame();
 begin
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   libvlc_media_player_next_frame(p_mi);
 end;
@@ -1699,7 +1708,7 @@ var
 begin
   GetPlayerHandle();
 
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
 
   // create media
@@ -1751,7 +1760,7 @@ end;
 
 procedure TFmxPasLibVlcPlayer.SetAudioMute(mute: Boolean);
 begin
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   if mute then
     libvlc_audio_set_mute(p_mi, 1)
@@ -1763,14 +1772,14 @@ end;
 function TFmxPasLibVlcPlayer.GetAudioVolume(): Integer;
 begin
   Result := -1;
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   Result := libvlc_audio_get_volume(p_mi);
 end;
 
 procedure TFmxPasLibVlcPlayer.SetAudioVolume(volumeLevel: Integer);
 begin
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   if (volumeLevel < 0) then
     exit;
@@ -1784,7 +1793,7 @@ end;
 
 procedure TFmxPasLibVlcPlayer.SetPlayRate(rate: Integer);
 begin
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   if (rate < 1) then
     exit;
@@ -1796,7 +1805,7 @@ end;
 function TFmxPasLibVlcPlayer.GetPlayRate(): Integer;
 begin
   Result := -1;
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   Result := Round(100 * libvlc_media_player_get_rate(p_mi));
 end;
@@ -1808,18 +1817,18 @@ var
   p_list: libvlc_module_description_t_ptr;
 begin
   Result := TStringList.Create;
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
 
   p_list := libvlc_audio_filter_list_get(p_mi);
 
   if (return_name_type = 0) then
   begin
-    while (p_list <> NIL) do
+    while (p_list <> nil) do
     begin
-      if (p_list^.psz_name <> NIL) then
+      if (p_list^.psz_name <> nil) then
       begin
-        Result.AddObject(UTF8ToWideString(p_list^.psz_name), NIL);
+        Result.AddObject(UTF8ToWideString(p_list^.psz_name), nil);
       end;
       p_list := p_list^.p_next;
     end;
@@ -1827,11 +1836,11 @@ begin
 
   if (return_name_type = 1) then
   begin
-    while (p_list <> NIL) do
+    while (p_list <> nil) do
     begin
-      if (p_list^.psz_shortname <> NIL) then
+      if (p_list^.psz_shortname <> nil) then
       begin
-        Result.AddObject(UTF8ToWideString(p_list^.psz_shortname), NIL);
+        Result.AddObject(UTF8ToWideString(p_list^.psz_shortname), nil);
       end;
       p_list := p_list^.p_next;
     end;
@@ -1839,11 +1848,11 @@ begin
 
   if (return_name_type = 2) then
   begin
-    while (p_list <> NIL) do
+    while (p_list <> nil) do
     begin
-      if (p_list^.psz_longname <> NIL) then
+      if (p_list^.psz_longname <> nil) then
       begin
-        Result.AddObject(UTF8ToWideString(p_list^.psz_longname), NIL);
+        Result.AddObject(UTF8ToWideString(p_list^.psz_longname), nil);
       end;
       p_list := p_list^.p_next;
     end;
@@ -1851,11 +1860,11 @@ begin
 
   if (return_name_type = 3) then
   begin
-    while (p_list <> NIL) do
+    while (p_list <> nil) do
     begin
-      if (p_list^.psz_help <> NIL) then
+      if (p_list^.psz_help <> nil) then
       begin
-        Result.AddObject(UTF8ToWideString(p_list^.psz_help), NIL);
+        Result.AddObject(UTF8ToWideString(p_list^.psz_help), nil);
       end;
       p_list := p_list^.p_next;
     end;
@@ -1869,18 +1878,18 @@ var
   p_list: libvlc_module_description_t_ptr;
 begin
   Result := TStringList.Create;
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
 
   p_list := libvlc_video_filter_list_get(p_mi);
 
   if (return_name_type = 0) then
   begin
-    while (p_list <> NIL) do
+    while (p_list <> nil) do
     begin
-      if (p_list^.psz_name <> NIL) then
+      if (p_list^.psz_name <> nil) then
       begin
-        Result.AddObject(UTF8ToWideString(p_list^.psz_name), NIL);
+        Result.AddObject(UTF8ToWideString(p_list^.psz_name), nil);
       end;
       p_list := p_list^.p_next;
     end;
@@ -1888,11 +1897,11 @@ begin
 
   if (return_name_type = 1) then
   begin
-    while (p_list <> NIL) do
+    while (p_list <> nil) do
     begin
-      if (p_list^.psz_shortname <> NIL) then
+      if (p_list^.psz_shortname <> nil) then
       begin
-        Result.AddObject(UTF8ToWideString(p_list^.psz_shortname), NIL);
+        Result.AddObject(UTF8ToWideString(p_list^.psz_shortname), nil);
       end;
       p_list := p_list^.p_next;
     end;
@@ -1900,11 +1909,11 @@ begin
 
   if (return_name_type = 2) then
   begin
-    while (p_list <> NIL) do
+    while (p_list <> nil) do
     begin
-      if (p_list^.psz_longname <> NIL) then
+      if (p_list^.psz_longname <> nil) then
       begin
-        Result.AddObject(UTF8ToWideString(p_list^.psz_longname), NIL);
+        Result.AddObject(UTF8ToWideString(p_list^.psz_longname), nil);
       end;
       p_list := p_list^.p_next;
     end;
@@ -1912,11 +1921,11 @@ begin
 
   if (return_name_type = 3) then
   begin
-    while (p_list <> NIL) do
+    while (p_list <> nil) do
     begin
-      if (p_list^.psz_help <> NIL) then
+      if (p_list^.psz_help <> nil) then
       begin
-        Result.AddObject(UTF8ToWideString(p_list^.psz_help), NIL);
+        Result.AddObject(UTF8ToWideString(p_list^.psz_help), nil);
       end;
       p_list := p_list^.p_next;
     end;
@@ -1932,14 +1941,14 @@ var
   p_track: libvlc_track_description_t_ptr;
 begin
   Result := TStringList.Create;
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
 
   p_track := libvlc_audio_get_track_description(p_mi);
 
-  while (p_track <> NIL) do
+  while (p_track <> nil) do
   begin
-    if (p_track^.psz_name <> NIL) then
+    if (p_track^.psz_name <> nil) then
     begin
       Result.AddObject(UTF8ToWideString(p_track^.psz_name), TObject(p_track^.i_id));
     end;
@@ -1950,7 +1959,7 @@ end;
 function TFmxPasLibVlcPlayer.GetAudioTrackCount(): Integer;
 begin
   Result := -1;
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   Result := libvlc_audio_get_track_count(p_mi);
 end;
@@ -1958,14 +1967,14 @@ end;
 function TFmxPasLibVlcPlayer.GetAudioTrackId(): Integer;
 begin
   Result := -1;
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   Result := libvlc_audio_get_track(p_mi);
 end;
 
 procedure TFmxPasLibVlcPlayer.SetAudioTrackById(const track_id: Integer);
 begin
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   if (track_id < 0) then
     exit;
@@ -1987,7 +1996,7 @@ begin
 
   p_track := libvlc_audio_get_track_description(p_mi);
 
-  while (p_track <> NIL) do
+  while (p_track <> nil) do
   begin
     if (p_track^.i_id = track_id) then
       exit;
@@ -2002,20 +2011,20 @@ procedure TFmxPasLibVlcPlayer.SetAudioTrackByNo(track_no: Integer);
 var
   p_track: libvlc_track_description_t_ptr;
 begin
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   if (track_no < 0) then
     exit;
 
   p_track := libvlc_audio_get_track_description(p_mi);
 
-  while ((track_no > 0) and (p_track <> NIL)) do
+  while ((track_no > 0) and (p_track <> nil)) do
   begin
     Dec(track_no);
     p_track := p_track^.p_next;
   end;
 
-  if (p_track <> NIL) then
+  if (p_track <> nil) then
   begin
     libvlc_audio_set_track(p_mi, p_track^.i_id);
   end;
@@ -2035,11 +2044,11 @@ begin
 
   p_track := libvlc_audio_get_track_description(p_mi);
 
-  while (p_track <> NIL) do
+  while (p_track <> nil) do
   begin
     if (p_track^.i_id = track_id) then
     begin
-      if (p_track^.psz_name <> NIL) then
+      if (p_track^.psz_name <> nil) then
       begin
         Result := UTF8ToWideString(p_track^.psz_name);
       end;
@@ -2063,15 +2072,15 @@ begin
 
   p_track := libvlc_audio_get_track_description(p_mi);
 
-  while ((track_no > 0) and (p_track <> NIL)) do
+  while ((track_no > 0) and (p_track <> nil)) do
   begin
     Dec(track_no);
     p_track := p_track^.p_next;
   end;
 
-  if (p_track <> NIL) then
+  if (p_track <> nil) then
   begin
-    if (p_track^.psz_name <> NIL) then
+    if (p_track^.psz_name <> nil) then
     begin
       Result := UTF8ToWideString(p_track^.psz_name);
     end;
@@ -2088,7 +2097,7 @@ var
 begin
   Result := TStringList.Create;
 
-  if (VLC.Handle = NIL) then
+  if (VLC.Handle = nil) then
     exit;
 
   count := libvlc_audio_equalizer_get_preset_count();
@@ -2096,7 +2105,7 @@ begin
   while (index < count) do
   begin
     preset := libvlc_audio_equalizer_get_preset_name(index);
-    if ((preset <> NIL) and (preset <> '')) then
+    if ((preset <> nil) and (preset <> '')) then
     begin
       Result.AddObject(UTF8ToWideString(preset), TObject(index));
     end;
@@ -2107,7 +2116,7 @@ end;
 function TFmxPasLibVlcPlayer.EqualizerGetBandCount(): unsigned_t;
 begin
   Result := 0;
-  if (VLC.Handle = NIL) then
+  if (VLC.Handle = nil) then
     exit;
   Result := libvlc_audio_equalizer_get_band_count();
 end;
@@ -2115,7 +2124,7 @@ end;
 function TFmxPasLibVlcPlayer.EqualizerGetBandFrequency(bandIndex: unsigned_t): Single;
 begin
   Result := 0;
-  if (VLC.Handle = NIL) then
+  if (VLC.Handle = nil) then
     exit;
   Result := libvlc_audio_equalizer_get_band_frequency(bandIndex);
 end;
@@ -2127,19 +2136,19 @@ end;
 
 procedure TFmxPasLibVlcPlayer.EqualizerApply(AEqualizer: TPasLibVlcEqualizer);
 begin
-  if (VLC.Handle = NIL) then
+  if (VLC.Handle = nil) then
     exit;
   GetPlayerHandle();
   if not Assigned(p_mi) then
     exit;
 
-  if (AEqualizer <> NIL) then
+  if (AEqualizer <> nil) then
   begin
     libvlc_media_player_set_equalizer(p_mi, AEqualizer.GetHandle());
   end
   else
   begin
-    libvlc_media_player_set_equalizer(p_mi, NIL);
+    libvlc_media_player_set_equalizer(p_mi, nil);
   end;
 end;
 
@@ -2147,7 +2156,7 @@ procedure TFmxPasLibVlcPlayer.EqualizerSetPreset(APreset: unsigned_t = $FFFF);
 var
   equalizer: TPasLibVlcEqualizer;
 begin
-  if (VLC.Handle = NIL) then
+  if (VLC.Handle = nil) then
     exit;
   GetPlayerHandle();
   if not Assigned(p_mi) then
@@ -2160,7 +2169,7 @@ begin
   end
   else
   begin
-    libvlc_media_player_set_equalizer(p_mi, NIL);
+    libvlc_media_player_set_equalizer(p_mi, nil);
   end;
 end;
 
@@ -2174,12 +2183,12 @@ begin
   Result := TStringList.Create;
   p_list_head := libvlc_audio_output_list_get(VLC.Handle);
 
-  if (p_list_head <> NIL) then
+  if (p_list_head <> nil) then
   begin
     p_list_item := p_list_head;
-    while (p_list_item <> NIL) do
+    while (p_list_item <> nil) do
     begin
-      if (p_list_item^.psz_name <> NIL) then
+      if (p_list_item^.psz_name <> nil) then
       begin
         if (withDescription) then
         begin
@@ -2204,12 +2213,12 @@ begin
   Result := TStringList.Create;
   p_list_head := libvlc_audio_output_device_list_get(VLC.Handle, PAnsiChar(Utf8Encode(aOut)));
 
-  if (p_list_head <> NIL) then
+  if (p_list_head <> nil) then
   begin
     p_list_item := p_list_head;
-    while (p_list_item <> NIL) do
+    while (p_list_item <> nil) do
     begin
-      if (p_list_item^.psz_device <> NIL) then
+      if (p_list_item^.psz_device <> nil) then
       begin
         if (withDescription) then
         begin
@@ -2233,7 +2242,7 @@ var
 begin
   Result := TStringList.Create;
 
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     GetPlayerHandle();
 
   if not Assigned(p_mi) then
@@ -2241,12 +2250,12 @@ begin
 
   p_list_head := libvlc_audio_output_device_enum(p_mi);
 
-  if (p_list_head <> NIL) then
+  if (p_list_head <> nil) then
   begin
     p_list_item := p_list_head;
-    while (p_list_item <> NIL) do
+    while (p_list_item <> nil) do
     begin
-      if (p_list_item^.psz_device <> NIL) then
+      if (p_list_item^.psz_device <> nil) then
       begin
         if (withDescription) then
         begin
@@ -2266,9 +2275,9 @@ end;
 function TFmxPasLibVlcPlayer.SetAudioOutput(aOut: WideString): Boolean;
 begin
   Result := FALSE;
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     GetPlayerHandle();
-  if (p_mi <> NIL) then
+  if (p_mi <> nil) then
   begin
     Result := (libvlc_audio_output_set(p_mi, PAnsiChar(Utf8Encode(aOut))) = 0);
     if Result then
@@ -2280,11 +2289,11 @@ end;
 
 procedure TFmxPasLibVlcPlayer.SetAudioOutputDevice(aOut: WideString; aOutDeviceId: WideString);
 begin
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
   begin
     GetPlayerHandle();
   end;
-  if (p_mi <> NIL) then
+  if (p_mi <> nil) then
   begin
     if (aOut <> '') then
     begin
@@ -2294,7 +2303,7 @@ begin
     end
     else
     begin
-      libvlc_audio_output_device_set(p_mi, NIL, PAnsiChar(Utf8Encode(aOutDeviceId)));
+      libvlc_audio_output_device_set(p_mi, nil, PAnsiChar(Utf8Encode(aOutDeviceId)));
       FLastAudioOutput := '';
       FLastAudioOutputDeviceId := aOutDeviceId;
     end;
@@ -2303,13 +2312,13 @@ end;
 
 procedure TFmxPasLibVlcPlayer.SetAudioOutputDevice(aOutDeviceId: WideString);
 begin
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
   begin
     GetPlayerHandle();
   end;
-  if (p_mi <> NIL) then
+  if (p_mi <> nil) then
   begin
-    libvlc_audio_output_device_set(p_mi, NIL, PAnsiChar(Utf8Encode(aOutDeviceId)));
+    libvlc_audio_output_device_set(p_mi, nil, PAnsiChar(Utf8Encode(aOutDeviceId)));
     FLastAudioOutput := '';
     FLastAudioOutputDeviceId := aOutDeviceId;
   end;
@@ -2327,7 +2336,7 @@ var
 begin
   Result := '';
   device_id := libvlc_audio_output_device_id(VLC.Handle, PAnsiChar(Utf8Encode(aOut)), deviceIdx);
-  if (device_id <> NIL) then
+  if (device_id <> nil) then
   begin
     Result := UTF8ToWideString(device_id);
     libvlc_free(device_id);
@@ -2340,7 +2349,7 @@ var
 begin
   device_name := libvlc_audio_output_device_longname(VLC.Handle, PAnsiChar(Utf8Encode(aOut)), deviceIdx);
   Result := '';
-  if (device_name <> NIL) then
+  if (device_name <> nil) then
   begin
     Result := UTF8ToWideString(device_name);
 //    libvlc_free(device_name);
@@ -2352,7 +2361,7 @@ end;
 
 procedure TFmxPasLibVlcPlayer.SetVideoAdjustEnable(value: Boolean);
 begin
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   if (value) then
     libvlc_video_set_adjust_int(p_mi, libvlc_adjust_Enable, 1)
@@ -2363,7 +2372,7 @@ end;
 function TFmxPasLibVlcPlayer.GetVideoAdjustEnable(): Boolean;
 begin
   Result := FALSE;
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   Result := (libvlc_video_get_adjust_int(p_mi, libvlc_adjust_Enable) <> 0);
 end;
@@ -2371,7 +2380,7 @@ end;
 // Set the image contrast, between 0 and 2. Defaults to 1
 procedure TFmxPasLibVlcPlayer.SetVideoAdjustContrast(value: Single);
 begin
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   libvlc_video_set_adjust_float(p_mi, libvlc_adjust_Contrast, value);
 end;
@@ -2379,7 +2388,7 @@ end;
 function TFmxPasLibVlcPlayer.GetVideoAdjustContrast(): Single;
 begin
   Result := 0;
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   Result := libvlc_video_get_adjust_float(p_mi, libvlc_adjust_Contrast);
 end;
@@ -2387,7 +2396,7 @@ end;
 // Set the image brightness, between 0 and 2. Defaults to 1.
 procedure TFmxPasLibVlcPlayer.SetVideoAdjustBrightness(value: Single);
 begin
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   libvlc_video_set_adjust_float(p_mi, libvlc_adjust_Brightness, value);
 end;
@@ -2395,7 +2404,7 @@ end;
 function TFmxPasLibVlcPlayer.GetVideoAdjustBrightness(): Single;
 begin
   Result := 0;
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   Result := libvlc_video_get_adjust_float(p_mi, libvlc_adjust_Brightness);
 end;
@@ -2403,7 +2412,7 @@ end;
 // Set the image hue, between 0 and 360. Defaults to 0.
 procedure TFmxPasLibVlcPlayer.SetVideoAdjustHue(value: Integer);
 begin
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   libvlc_video_set_adjust_int(p_mi, libvlc_adjust_Hue, value);
 end;
@@ -2411,7 +2420,7 @@ end;
 function TFmxPasLibVlcPlayer.GetVideoAdjustHue(): Integer;
 begin
   Result := 0;
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   Result := libvlc_video_get_adjust_int(p_mi, libvlc_adjust_Hue);
 end;
@@ -2419,7 +2428,7 @@ end;
 // Set the image saturation, between 0 and 3. Defaults to 1.
 procedure TFmxPasLibVlcPlayer.SetVideoAdjustSaturation(value: Single);
 begin
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   libvlc_video_set_adjust_float(p_mi, libvlc_adjust_Saturation, value);
 end;
@@ -2427,7 +2436,7 @@ end;
 function TFmxPasLibVlcPlayer.GetVideoAdjustSaturation(): Single;
 begin
   Result := 0;
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   Result := libvlc_video_get_adjust_float(p_mi, libvlc_adjust_Saturation);
 end;
@@ -2435,7 +2444,7 @@ end;
 // Set the image gamma, between 0.01 and 10. Defaults to 1
 procedure TFmxPasLibVlcPlayer.SetVideoAdjustGamma(value: Single);
 begin
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   libvlc_video_set_adjust_float(p_mi, libvlc_adjust_Gamma, value);
 end;
@@ -2443,7 +2452,7 @@ end;
 function TFmxPasLibVlcPlayer.GetVideoAdjustGamma(): Single;
 begin
   Result := 0;
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   Result := libvlc_video_get_adjust_float(p_mi, libvlc_adjust_Gamma);
 end;
@@ -2453,14 +2462,14 @@ end;
 function TFmxPasLibVlcPlayer.GetVideoChapter(): Integer;
 begin
   Result := -1;
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   Result := libvlc_media_player_get_chapter(p_mi);
 end;
 
 procedure TFmxPasLibVlcPlayer.SetVideoChapter(newChapter: Integer);
 begin
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   libvlc_media_player_set_chapter(p_mi, newChapter);
 end;
@@ -2468,7 +2477,7 @@ end;
 function TFmxPasLibVlcPlayer.GetVideoChapterCount(): Integer;
 begin
   Result := -1;
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   Result := libvlc_media_player_get_chapter_count(p_mi);
 end;
@@ -2476,7 +2485,7 @@ end;
 function TFmxPasLibVlcPlayer.GetVideoChapterCountByTitleId(const title_id: Integer): Integer;
 begin
   Result := -1;
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   Result := libvlc_media_player_get_chapter_count_for_title(p_mi, title_id);
 end;
@@ -2488,14 +2497,14 @@ var
   p_track: libvlc_track_description_t_ptr;
 begin
   Result := TStringList.Create;
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
 
   p_track := libvlc_video_get_spu_description(p_mi);
 
-  while (p_track <> NIL) do
+  while (p_track <> nil) do
   begin
-    if (p_track^.psz_name <> NIL) then
+    if (p_track^.psz_name <> nil) then
     begin
       Result.AddObject(UTF8ToWideString(p_track^.psz_name), TObject(p_track^.i_id));
     end;
@@ -2506,7 +2515,7 @@ end;
 function TFmxPasLibVlcPlayer.GetVideoSubtitleCount(): Integer;
 begin
   Result := -1;
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   Result := libvlc_video_get_spu_count(p_mi);
 end;
@@ -2514,14 +2523,14 @@ end;
 function TFmxPasLibVlcPlayer.GetVideoSubtitleId(): Integer;
 begin
   Result := -1;
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     Exit;
   Result := libvlc_video_get_spu(p_mi);
 end;
 
 procedure TFmxPasLibVlcPlayer.SetVideoSubtitleById(const subtitle_id: Integer);
 begin
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   libvlc_video_set_spu(p_mi, subtitle_id);
 end;
@@ -2540,7 +2549,7 @@ begin
 
   p_track := libvlc_video_get_spu_description(p_mi);
 
-  while (p_track <> NIL) do
+  while (p_track <> nil) do
   begin
     if (p_track^.i_id = track_id) then
       exit;
@@ -2555,20 +2564,20 @@ procedure TFmxPasLibVlcPlayer.SetVideoSubtitleByNo(subtitle_no: Integer);
 var
   p_track: libvlc_track_description_t_ptr;
 begin
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   if (subtitle_no < 0) then
     exit;
 
   p_track := libvlc_video_get_spu_description(p_mi);
 
-  while ((subtitle_no > 0) and (p_track <> NIL)) do
+  while ((subtitle_no > 0) and (p_track <> nil)) do
   begin
     Dec(subtitle_no);
     p_track := p_track^.p_next;
   end;
 
-  if (p_track <> NIL) then
+  if (p_track <> nil) then
   begin
     libvlc_video_set_spu(p_mi, p_track^.i_id);
   end;
@@ -2588,11 +2597,11 @@ begin
 
   p_track := libvlc_video_get_spu_description(p_mi);
 
-  while (p_track <> NIL) do
+  while (p_track <> nil) do
   begin
     if (p_track^.i_id = subtitle_id) then
     begin
-      if (p_track^.psz_name <> NIL) then
+      if (p_track^.psz_name <> nil) then
       begin
         Result := UTF8ToWideString(p_track^.psz_name);
       end;
@@ -2616,15 +2625,15 @@ begin
 
   p_track := libvlc_video_get_spu_description(p_mi);
 
-  while ((subtitle_no > 0) and (p_track <> NIL)) do
+  while ((subtitle_no > 0) and (p_track <> nil)) do
   begin
     Dec(subtitle_no);
     p_track := p_track^.p_next;
   end;
 
-  if (p_track <> NIL) then
+  if (p_track <> nil) then
   begin
-    if (p_track^.psz_name <> NIL) then
+    if (p_track^.psz_name <> nil) then
     begin
       Result := UTF8ToWideString(p_track^.psz_name);
     end;
@@ -2633,7 +2642,7 @@ end;
 
 procedure TFmxPasLibVlcPlayer.SetVideoSubtitleFile(subtitle_file: WideString);
 begin
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   libvlc_video_set_subtitle_file(p_mi, PAnsiChar(UTF8Encode(subtitle_file)));
 end;
@@ -2645,14 +2654,14 @@ var
   p_track: libvlc_track_description_t_ptr;
 begin
   Result := TStringList.Create;
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
 
   p_track := libvlc_video_get_title_description(p_mi);
 
-  while (p_track <> NIL) do
+  while (p_track <> nil) do
   begin
-    if (p_track^.psz_name <> NIL) then
+    if (p_track^.psz_name <> nil) then
     begin
       Result.AddObject(UTF8ToWideString(p_track^.psz_name), TObject(p_track^.i_id));
     end;
@@ -2663,7 +2672,7 @@ end;
 function TFmxPasLibVlcPlayer.GetVideoTitleCount(): Integer;
 begin
   Result := -1;
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   Result := libvlc_media_player_get_title_count(p_mi);
 end;
@@ -2671,14 +2680,14 @@ end;
 function TFmxPasLibVlcPlayer.GetVideoTitleId(): Integer;
 begin
   Result := -1;
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   Result := libvlc_media_player_get_title(p_mi);
 end;
 
 procedure TFmxPasLibVlcPlayer.SetVideoTitleById(const title_id: Integer);
 begin
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   libvlc_media_player_set_title(p_mi, title_id);
 end;
@@ -2697,7 +2706,7 @@ begin
 
   p_track := libvlc_video_get_title_description(p_mi);
 
-  while (p_track <> NIL) do
+  while (p_track <> nil) do
   begin
     if (p_track^.i_id = title_id) then
       exit;
@@ -2712,20 +2721,20 @@ procedure TFmxPasLibVlcPlayer.SetVideoTitleByNo(title_no: Integer);
 var
   p_track: libvlc_track_description_t_ptr;
 begin
-  if (p_mi = NIL) then
+  if (p_mi = nil) then
     exit;
   if (title_no < 0) then
     exit;
 
   p_track := libvlc_video_get_title_description(p_mi);
 
-  while ((title_no > 0) and (p_track <> NIL)) do
+  while ((title_no > 0) and (p_track <> nil)) do
   begin
     Dec(title_no);
     p_track := p_track^.p_next;
   end;
 
-  if (p_track <> NIL) then
+  if (p_track <> nil) then
   begin
     libvlc_media_player_set_title(p_mi, p_track^.i_id);
   end;
@@ -2745,11 +2754,11 @@ begin
 
   p_track := libvlc_video_get_title_description(p_mi);
 
-  while (p_track <> NIL) do
+  while (p_track <> nil) do
   begin
     if (p_track^.i_id = track_id) then
     begin
-      if (p_track^.psz_name <> NIL) then
+      if (p_track^.psz_name <> nil) then
       begin
         Result := UTF8ToWideString(p_track^.psz_name);
       end;
@@ -2773,15 +2782,15 @@ begin
 
   p_track := libvlc_video_get_title_description(p_mi);
 
-  while ((title_no > 0) and (p_track <> NIL)) do
+  while ((title_no > 0) and (p_track <> nil)) do
   begin
     Dec(title_no);
     p_track := p_track^.p_next;
   end;
 
-  if (p_track <> NIL) then
+  if (p_track <> nil) then
   begin
-    if (p_track^.psz_name <> NIL) then
+    if (p_track^.psz_name <> nil) then
     begin
       Result := UTF8ToWideString(p_track^.psz_name);
     end;
@@ -2888,7 +2897,7 @@ begin
     file_name := file_name + file_names[file_indx] + ';';
     {$ELSE}
     file_name := file_name + file_names[file_indx] + ':';
-    {$ENDIF}                                                                ;
+    {$ENDIF}                                                                                                    ;
   end;
   // remove last PATH_SEPARATOR;
   if (file_name <> '') then
@@ -2985,7 +2994,7 @@ begin
   if not Assigned(p_mi) then
     exit;
   libvlc_video_set_logo_int(p_mi, libvlc_logo_Enable, 1); // not work
-  libvlc_video_set_logo_string(p_mi, libvlc_logo_File, NIL); // this work
+  libvlc_video_set_logo_string(p_mi, libvlc_logo_File, nil); // this work
 end;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -2999,7 +3008,7 @@ begin
   if not Assigned(p_mi) then
     exit;
   if (marquee_text = '') then
-    libvlc_video_set_marquee_string(p_mi, libvlc_marquee_Text, NIL)
+    libvlc_video_set_marquee_string(p_mi, libvlc_marquee_Text, nil)
   else
     libvlc_video_set_marquee_string(p_mi, libvlc_marquee_Text, PAnsiChar(UTF8Encode(marquee_text)));
 end;
@@ -3117,7 +3126,7 @@ var
 begin
   if Assigned(FOnMediaPlayerMediaChanged) then
   begin
-    if (p_md <> NIL) then
+    if (p_md <> nil) then
     begin
       tmp := libvlc_media_get_mrl(p_md);
       mrl := UTF8ToWideString(tmp);
@@ -3189,7 +3198,7 @@ var
   tmp: PAnsiChar;
 begin
   tmp := libvlc_errmsg();
-  if (tmp <> NIL) then
+  if (tmp <> nil) then
   begin
     FError := UTF8ToWideString(tmp);
   end
@@ -3379,10 +3388,11 @@ var
   pitch: LongWord;
   video_l: LongWord;
 begin
-  inherited Paint;
-
-  if (FVideoCbCtx = NIL) then
+  if (FVideoCbCtx = nil) then
+  begin
+    inherited Paint;
     exit;
+  end;
 
   with FVideoCbCtx do
   begin
@@ -3392,7 +3402,7 @@ begin
       bmp := Bitmap;//TBitmap.Create(video_w, video_h);
       frame_lock.Enter();
       try
-        if (frame_buff <> NIL) then
+        if (frame_buff <> nil) then
         begin
           if bmp.Map(TMapAccess.Write, bmd) then
           begin
@@ -3438,6 +3448,7 @@ begin
       //FreeAndNil(bmp);
     end;
   end;
+  inherited Paint;
 end;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -3447,49 +3458,35 @@ var
   ctx: TFmxPasLibVlcVideoCbCtx;
   pIdx: Integer;
 begin
-  Result := NIL;
-  if (ptr = NIL) then
+  Result := nil;
+  if (ptr = nil) then
     exit;
 
   ctx := TFmxPasLibVlcVideoCbCtx(ptr);
-
-  with ctx do
+  ctx.vctx.lock.Enter();
+  for pIdx := 0 to VOUT_MAX_PLANES - 1 do
   begin
-    with vctx do
-    begin
-      lock.Enter();
-      for pIdx := 0 to VOUT_MAX_PLANES - 1 do
-      begin
-        planes^[pIdx] := buff_a32[pIdx];
-      end;
-      Result := buff_a32[0];
-    end;
+    planes^[pIdx] := ctx.vctx.buff_a32[pIdx];
   end;
+  Result := ctx.vctx.buff_a32[0];
 end;
 
 procedure fmx_libvlc_video_unlock_cb(ptr: Pointer; picture: Pointer; planes: PVCBPlanes); cdecl;
 var
   ctx: TFmxPasLibVlcVideoCbCtx;
 begin
-  if (ptr = NIL) then
+  if (ptr = nil) then
     exit;
 
   ctx := TFmxPasLibVlcVideoCbCtx(ptr);
-
-  with ctx do
-  begin
-    with vctx do
-    begin
-      lock.Leave();
-    end;
-  end;
+  ctx.vctx.lock.Leave();
 end;
 
 procedure fmx_libvlc_video_display_cb(ptr: Pointer; picture: Pointer); cdecl;
 var
   ctx: TFmxPasLibVlcVideoCbCtx;
 begin
-  if (ptr = NIL) then
+  if (ptr = nil) then
     exit;
 
   ctx := TFmxPasLibVlcVideoCbCtx(ptr);
@@ -3499,76 +3496,54 @@ begin
     with vctx do
     begin
       if frame_lock.TryEnter() then
-      begin
-        try
+      try
           // RV32, RGBA, BGRA we show only first plane
-          if (frame_buff <> NIL) then
-          begin
-            if (buff_a32[0] <> NIL) then
-            begin
-              Move(buff_a32[0]^, frame_buff^, pitch_w_a32 * video_h);
-            end;
-          end;
-        finally
-          frame_lock.Leave();
-        end;
-
-        if (view <> NIL) then
+        if (frame_buff <> nil) then
         begin
-          view.InvalidateRect(view.BoundsRect);
+          if (buff_a32[0] <> nil) then
+          begin
+            Move(buff_a32[0]^, frame_buff^, pitch_w_a32 * video_h);
+          end;
         end;
+      finally
+        frame_lock.Leave();
+      end;
+
+      if (view <> nil) then
+      begin
+        view.InvalidateRect(view.BoundsRect);
       end;
     end;
   end;
 end;
 
-function fmx_libvlc_video_format_cb(var ptr: Pointer; chroma: PAnsiChar; var width: LongWord; var height: LongWord; pitches: PVCBPitches; lines: PVCBLines): LongWord; cdecl;
+function fmx_libvlc_video_format_cb(var ptr: Pointer; chroma: PAnsiChar; var width: LongWord; var height: LongWord; pitches: PVCBPitches; lines: PVCBLines): LongWord;
 const
   // src/misc/fourcc.c: fourcc helpers functions
-  PixelFormatChromas: array[FMX.Types.TPixelFormat] of string[4] =(    { None      0}'RV32',
-
+  PixelFormatChromas: array[FMX.Types.TPixelFormat] of string[4] = (
+    { None      0}'RV32',
     { RGB       4}'RV32',
-
     { RGBA      4}'RGBA', // OSX 10.7.5, 32bits
     { BGR       4}'RV32',
-
     { BGRA      4}'BGRA', // Windows 7, 32bits
     { RGBA16    8}'RV32',
-
     { BGR_565   2}'RV32',
-
     { BGRA4     2}'RV32',
-
     { BGR4      2}'RV32',
-
     { BGR5_A1   2}'RV32',
-
     { BGR5      2}'RV32',
-
     { BGR10_A2  4}'RV32',
-
     { RGB10_A2  4}'RV32',
-
     { L         1}'RV32',
-
     { LA        2}'RV32',
-
     { LA4       1}'RV32',
-
     { L16       2}'RV32',
-
     { A         1}'RV32',
-
     { R16F      2}'RV32',
-
     { RG16F     4}'RV32',
-
     { RGBA16F   8}'RV32',
-
     { R32F      4}'RV32',
-
     { RG32F     8}'RV32',
-
     { RGBA32F  16}'RV32');
 type
   PChromaStr = ^TChromaStr;
@@ -3580,7 +3555,7 @@ var
 begin
   Result := 0;
 
-  if (ptr = NIL) then
+  if (ptr = nil) then
     exit;
   ctx := TFmxPasLibVlcVideoCbCtx(ptr);
   //width := Trunc(height * ctx.ForceAspectRatio);
@@ -3601,10 +3576,10 @@ begin
         frame_lock.Enter();
         try
 
-          if (frame_buff <> NIL) then
+          if (frame_buff <> nil) then
           begin
             FreeMem(frame_buff);
-            frame_buff := NIL;
+            frame_buff := nil;
           end;
 
           GetMem(frame_buff, pitch_w_a32 * video_h_a32);
@@ -3612,7 +3587,7 @@ begin
           frame_lock.Leave();
         end;
 
-        if (view <> NIL) then
+        if (view <> nil) then
         begin
           (view as TFmxPasLibVlcPlayer).InternalHandleEvent_VideoSizeChanged(video_w, video_h, video_w_a32, video_h_a32);
           view.InvalidateRect(view.BoundsRect);
@@ -3630,7 +3605,7 @@ procedure fmx_libvlc_video_cleanup_cb(ptr: Pointer); cdecl;
 var
   ctx: TFmxPasLibVlcVideoCbCtx;
 begin
-  if (ptr = NIL) then
+  if (ptr = nil) then
     exit;
 
   ctx := TFmxPasLibVlcVideoCbCtx(ptr);
@@ -3651,10 +3626,10 @@ begin
 
         try
 
-          if (frame_buff <> NIL) then
+          if (frame_buff <> nil) then
           begin
             FreeMem(frame_buff);
-            frame_buff := NIL;
+            frame_buff := nil;
           end;
         finally
           frame_lock.Leave();
@@ -3670,7 +3645,7 @@ procedure fmx_lib_vlc_player_event_hdlr(p_event: libvlc_event_t_ptr; data: Point
 var
   player: TFmxPasLibVlcPlayer;
 begin
-  if (data = NIL) then
+  if (data = nil) then
     exit;
 
   player := TFmxPasLibVlcPlayer(data);
@@ -3788,14 +3763,14 @@ end;
 
 destructor TFmxPasLibVlcVideoCbCtx.Destroy;
 begin
-  view := NIL;
+  view := nil;
 
   FreeAndNil(frame_lock);
 
-  if (frame_buff <> NIL) then
+  if (frame_buff <> nil) then
   begin
     FreeMem(frame_buff);
-    frame_buff := NIL;
+    frame_buff := nil;
   end;
 
   libvlc_video_cb_vctx_clr_buffers(@vctx);

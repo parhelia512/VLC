@@ -1,46 +1,44 @@
-(*
+﻿(*
  *******************************************************************************
- * PasLibVlcUnit.pas - pascal interface for VideoLAN libvlc 3.0.5
+ * PasLibVlcUnit.pas - pascal interface for VideoLAN libvlc 3.0.20
  *
  * See copyright notice below.
  *
- * Last modified: 2019.02.22 [HemulGM]
- * Last modified: Search dlls local path
+ * Last modified: 2024.01.15
  *
- * author: Robert J�drzejczyk
+ * author: Robert Jędrzejczyk
  * e-mail: robert@prog.olsztyn.pl
  *    www: http://prog.olsztyn.pl/paslibvlc
- *
  *
  * See PasLibVlcUnit.txt for change log
  *
  *******************************************************************************
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Copyright (c) 2024 Robert Jędrzejczyk
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
  *
- * Any non-GPL usage of this software or parts of this software is strictly
- * forbidden.
- *
- * The "appropriate copyright message" mentioned in section 2c of the GPLv2
- * must read: "Code from FAAD2 is copyright (c) Nero AG, www.nero.com"
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *******************************************************************************
  *
  * libvlc is part of project VideoLAN
  *
- * Copyright (c) 1996-2018 VideoLAN Team
+ * Copyright (c) 1996-2024 VideoLAN Team
  *
  * For more information about VideoLAN
  *
@@ -57,12 +55,12 @@ interface
 uses
   {$IFDEF UNIX}Unix,{$ENDIF}
   {$IFDEF FPC}dynlibs, LCLType,{$ENDIF}
-  {$IFDEF MSWINDOWS}Windows,{$ENDIF}
+  {$IFDEF MSWINDOWS}Windows, Registry,{$ENDIF}
   {$IFDEF LCLCARBON}CarbonPrivate, CarbonDef,{$ENDIF}
-  {$IFDEF LCLGTK2}Gtk2, {$IFDEF UNIX}Gdk2x,{$ENDIF}{$ENDIF}
+  {$IFDEF LCLGTK2}Gtk2, {$IFDEF LINUX}Gdk2x,{$ENDIF}{$ENDIF}
   {$IFDEF LCLQT}Qt4, QtWidgets,{$ENDIF}
   {$IFDEF LCLQT5}Qt5, QtWidgets,{$ENDIF}
-  {$IFDEF UNIX}Dialogs,{$ENDIF}
+  {$IFDEF LINUX}FMX.Dialogs, Posix.Unistd,{$ENDIF}
   {$IFDEF MACOS}FMX.Dialogs,Posix.Unistd,{$ENDIF}
   SysUtils, {$IFDEF HAS_SYNCOBJS}SyncObjs,{$ENDIF} Classes, Math;
 
@@ -77,6 +75,16 @@ const
 var
   VLCLibraryPath : string = '';
 
+const
+  VLC_VERSION_BIN_010000 = $010000;
+  VLC_VERSION_BIN_010100 = $010100;
+  VLC_VERSION_BIN_010101 = $010101;
+  VLC_VERSION_BIN_010105 = $010105;
+  VLC_VERSION_BIN_020000 = $020000;
+  VLC_VERSION_BIN_020100 = $020100;
+  VLC_VERSION_BIN_020200 = $020200;
+  VLC_VERSION_BIN_030000 = $030000;
+  VLC_VERSION_BIN_040000 = $040000;
 
 (**
  * Real path to libvlc.dll
@@ -169,7 +177,7 @@ type
 type
   TPasLibVlcWinHandle  = {$IFDEF MACOS}Pointer{$ELSE}{$IFDEF FPC}{$IFNDEF WINDOWS}LCLType.{$ENDIF}{$ENDIF}THandle{$ENDIF};
   TPasLibVlcLibHandle  = {$IFDEF FPC}dynlibs.TLibHandle{$ELSE}THandle{$ENDIF};
-  TPaslibVlcFileHandle = System.THandle;
+  TPaslibVlcFileHandle = {$IFDEF DELPHI_XE_UP}System.THandle{$ELSE}THandle{$ENDIF};
 
 (*
  *******************************************************************************
@@ -2903,10 +2911,29 @@ var
  * Stop (no effect if there is no media)
  *
  * param p_mi the Media Player
+ *
+ * removed LibVLC 4.0.0
  *)
 
 var
   libvlc_media_player_stop : procedure(
+    p_mi : libvlc_media_player_t_ptr
+  ); cdecl;
+
+(**
+ * Stop asynchronously
+ *
+ * This function is asynchronous. In case of success, the user should
+ * wait for the libvlc_MediaPlayerStopped event to know when the stop is
+ * finished.
+ *
+ * param p_mi the Media Player
+ * return 0 if the player is being stopped, -1 otherwise (no-op)
+ * version LibVLC 4.0.0 or later
+ *)
+
+var
+  libvlc_media_player_stop_async : procedure(
     p_mi : libvlc_media_player_t_ptr
   ); cdecl;
 
@@ -5863,6 +5890,18 @@ var
   ); cdecl;
 
 (**
+ * Stop async playing media list
+ *
+ * param p_mlp media list player instance
+ * version LibVLC 4.0.0 or later
+ *)
+
+var
+  libvlc_media_list_player_stop_async : procedure(
+    p_mlp : libvlc_media_list_player_t_ptr
+  ); cdecl;
+
+(**
  * Play next item from media list
  *
  * param p_mlp media list player instance
@@ -6848,12 +6887,17 @@ var
  *
  * see libvlc_renderer_discoverer_list_get()
  *)
+
 type
-  libvlc_rd_description_t_ptr = ^libvlc_rd_description_t;
   libvlc_rd_description_t = record
     psz_name : PAnsiChar;
     psz_longname : PAnsiChar;
   end;
+  libvlc_rd_description_t_ptr = ^libvlc_rd_description_t;
+
+type
+  libvlc_rd_description_t_list_ptr = ^libvlc_rd_description_t_list;
+  libvlc_rd_description_t_list = array[0..(MaxInt div sizeof(libvlc_rd_description_t_ptr)-1)] of libvlc_rd_description_t_ptr;
 
 const
   LIBVLC_RENDERER_CAN_AUDIO = $0001; // The renderer can render audio
@@ -7063,7 +7107,7 @@ var
 var
   libvlc_renderer_discoverer_list_get : function(
     p_inst       : libvlc_instance_t_ptr;
-    ppp_services : libvlc_rd_description_t_ptr
+    var ppp_services : libvlc_rd_description_t_list_ptr
   ) : libvlc_size_t; cdecl;
 
 (**
@@ -7079,7 +7123,7 @@ var
 
 var
   libvlc_renderer_discoverer_list_release : procedure(
-    pp_services : libvlc_rd_description_t_ptr;
+    pp_services : libvlc_rd_description_t_list_ptr;
     i_count     : libvlc_size_t); cdecl;
 
 {$IFDEF USE_VLC_DEPRECATED_API}
@@ -7188,19 +7232,45 @@ type
 
   public
 
-    constructor Create(values : array of string; ignoreEmptyStrings : Boolean = TRUE; allowDuplicates : Boolean = FALSE);
+    constructor Create(values : array of WideString; ignoreEmptyStrings : Boolean = TRUE; allowDuplicates : Boolean = FALSE);
     destructor Destroy; override;
 
     procedure Clear;
-    function AddArg(value : string; ignoreEmptyStrings : Boolean = TRUE; allowDuplicates : Boolean = FALSE) : Integer; overload;
-    function AddArg(values : array of string; ignoreEmptyStrings : Boolean = TRUE; allowDuplicates : Boolean = FALSE) : Integer; overload;
-    function AddArg(values : TStringList; ignoreEmptyStrings : Boolean = TRUE; allowDuplicates : Boolean = FALSE) : Integer; overload;
+    function AddArg(value : AnsiString; ignoreEmptyStrings : Boolean = TRUE; allowDuplicates : Boolean = FALSE) : Integer; overload;
 
+    // without this D4 not complie
+    // [Error] PasLibVlcUnit.pas(8403): Ambiguous overloaded call to 'AddArg'
+    {$IFDEF DELPHI6_UP}
+    function AddArg(value : WideString; ignoreEmptyStrings : Boolean = TRUE; allowDuplicates : Boolean = FALSE) : Integer; overload;
+    {$ENDIF}
+    function AddArg(values : array of WideString; ignoreEmptyStrings : Boolean = TRUE; allowDuplicates : Boolean = FALSE) : Integer; overload;
+    function AddArg(values : TStringList; ignoreEmptyStrings : Boolean = TRUE; allowDuplicates : Boolean = FALSE) : Integer; overload;    
+    
     property ARGC : LongInt read GetArgc;
     property ARGS : Pointer read GetArgs;
   end;
 
+  (*
+    compiler - exec time[ms] - 1.000.000 calls
+    D4:        7 813
+    D7:        7 906
+    D2007:     3 297
+    Lazarus 2: 5 109
+    XE7:       2 434
+    XE10:      2 057
+  *)
   function time2str(timeInMs: Int64; fmt: string = 'hh:mm:ss.ms'): string;
+
+  (*
+    compiler - exec time[ms] - 1.000.000 calls
+    D4:        421 => 18x faster
+    D7:        531 => 14x faster
+    D2007:     219 => 15x faster
+    Lazarus 2: 344 => 14x faster
+    XE7:       265 =>  9x faster
+    XE10:      250 =>  8x faster
+  *)
+  function time2str_fast(timeInMs: Int64; fmt: string = 'hh:mm:ss.ms'): string;
 
 implementation
 
@@ -7209,10 +7279,17 @@ uses
     System.AnsiStrings;
 {$ENDIF}
 
-function w2s(w: word): string;
+function w2s2(w: word): string; {$IFDEF HAS_INLINE}inline;{$ENDIF}
 begin
-  if (w < 10)  then Result := '0' + IntToStr(w)
-  else              Result := IntToStr(w);
+  if (w > 9)  then Result := IntToStr(w)
+  else             Result := '0' + IntToStr(w);
+end;
+
+function w2s3(w: word): string; {$IFDEF HAS_INLINE}inline;{$ENDIF}
+begin
+  if (w > 99)      then Result := IntToStr(w)
+  else if (w > 9)  then Result := '0' + IntToStr(w)
+  else                  Result := '00' + IntToStr(w);
 end;
 
 function time2str(timeInMs: Int64; fmt: string = 'hh:mm:ss.ms'): string;
@@ -7228,11 +7305,124 @@ begin
   dd := timeInMs;
 
   Result := fmt;
-  Result := StringReplace(Result, 'dd',  w2s(dd), [rfReplaceAll, rfIgnoreCase]);
-  Result := StringReplace(Result, 'hh',  w2s(hh), [rfReplaceAll, rfIgnoreCase]);
-  Result := StringReplace(Result, 'mm',  w2s(mm), [rfReplaceAll, rfIgnoreCase]);
-  Result := StringReplace(Result, 'ss',  w2s(ss), [rfReplaceAll, rfIgnoreCase]);
-  Result := StringReplace(Result, 'ms',  w2s(ms), [rfReplaceAll, rfIgnoreCase]);
+  Result := StringReplace(Result, 'dd',  w2s2(dd), [rfReplaceAll, rfIgnoreCase]);
+  Result := StringReplace(Result, 'hh',  w2s2(hh), [rfReplaceAll, rfIgnoreCase]);
+  Result := StringReplace(Result, 'mm',  w2s2(mm), [rfReplaceAll, rfIgnoreCase]);
+  Result := StringReplace(Result, 'ss',  w2s2(ss), [rfReplaceAll, rfIgnoreCase]);
+  Result := StringReplace(Result, 'ms',  w2s3(ms), [rfReplaceAll, rfIgnoreCase]);
+end;
+
+function time2str_fast(timeInMs: Int64; fmt: string = 'hh:mm:ss.ms'): string;
+var
+  dd, hh, mm, ss, ms, xx: Word;
+  idx, len : Integer;
+  d1, d2, d3, d4, d5 : Byte;
+  c0, c1 : Char;
+  tmp : string;
+begin
+  if (timeInMs < 0) then timeInMs := 0;
+
+  ms := timeInMs mod 1000; timeInMs := timeInMs div 1000;
+  ss := timeInMs mod 60;   timeInMs := timeInMs div 60;
+  mm := timeInMs mod 60;   timeInMs := timeInMs div 60;
+  hh := timeInMs mod 24;   timeInMs := timeInMs div 24;
+  dd := timeInMs mod 65536;
+
+  tmp := fmt;
+  idx := 1;
+  len := Length(tmp);
+  while (idx < len) do
+  begin
+    c0 := tmp[idx + 0]; if ('A' <= c0) and (c0 <= 'Z') then Inc(c0, 32);
+    c1 := tmp[idx + 1]; if ('A' <= c1) and (c1 <= 'Z') then Inc(c1, 32);
+    case c0 of
+      'd': begin
+        if (c1 = 'd') then
+        begin
+          d1 := dd mod 10; xx := dd div 10;
+          d2 := xx mod 10; xx := xx div 10;
+          d3 := xx mod 10; xx := xx div 10;
+          d4 := xx mod 10; xx := xx div 10;
+          d5 := xx;
+          if (d5 > 0) then
+          begin
+            Insert('   ', tmp, idx + 2);
+            tmp[idx + 0] := Chr(48 + d5);
+            tmp[idx + 1] := Chr(48 + d4);
+            tmp[idx + 2] := Chr(48 + d3);
+            tmp[idx + 3] := Chr(48 + d2);
+            tmp[idx + 4] := Chr(48 + d1);
+            Inc(idx, 5);
+            continue;
+          end;
+          if (d4 > 0) then
+          begin
+            Insert('  ', tmp, idx + 2);
+            tmp[idx + 0] := Chr(48 + d4);
+            tmp[idx + 1] := Chr(48 + d3);
+            tmp[idx + 2] := Chr(48 + d2);
+            tmp[idx + 3] := Chr(48 + d1);
+            Inc(idx, 4);
+            continue;
+          end;
+          if (d3 > 0) then
+          begin
+            Insert(' ', tmp, idx + 2);
+            tmp[idx + 0] := Chr(48 + d3);
+            tmp[idx + 1] := Chr(48 + d2);
+            tmp[idx + 2] := Chr(48 + d1);
+            Inc(idx, 3);
+            continue;
+          end;
+          tmp[idx + 0] := Chr(48 + d2);
+          tmp[idx + 1] := Chr(48 + d1);
+          Inc(idx, 2);
+          continue;
+        end;
+      end;
+      'h' : begin
+        if (c1 = 'h') then
+        begin
+          tmp[idx + 0] := Chr(48 + (hh div 10));
+          tmp[idx + 1] := Chr(48 + (hh mod 10));
+          Inc(idx, 2);
+          continue;
+        end;
+      end;
+      'm' : begin
+        if (c1 = 'm') then
+        begin
+          tmp[idx + 0] := Chr(48 + (mm div 10));
+          tmp[idx + 1] := Chr(48 + (mm mod 10));
+          Inc(idx, 2);
+          continue;
+        end;
+        if (c1 = 's') then
+        begin
+          Insert(' ', tmp, idx + 2);
+          d1 := ms mod 10; xx := ms div 10;
+          d2 := xx mod 10; xx := xx div 10;
+          d3 := xx mod 10;
+          tmp[idx + 0] := Chr(48 + d3);
+          tmp[idx + 1] := Chr(48 + d2);
+          tmp[idx + 2] := Chr(48 + d1);
+          Inc(idx, 3);
+          continue;
+        end;
+      end;
+      's' : begin
+        if (c1 = 's') then
+        begin
+          tmp[idx + 0] := Chr(48 + (ss div 10));
+          tmp[idx + 1] := Chr(48 + (ss mod 10));
+          Inc(idx, 2);
+          continue;
+        end;
+      end;
+    end;
+    Inc(idx);
+  end;
+  Result := tmp;
 end;
 
 const
@@ -7247,7 +7437,7 @@ const
   LIBVLC_DLL_EXT     = 'dylib';
   {$ENDIF}
 
-  {$IFDEF UNIX}
+  {$IFDEF LINUX}
   LIBVLC_DLL_EXT     = 'so';
   {$ENDIF}
 
@@ -7348,7 +7538,7 @@ begin
       if (sTmp1 and $C0) <> $80 then break;
       Inc(sIndx);
       Dec(sLeft);
-      
+
       Inc(dLeng);
       Result[dLeng] := WideChar(((sTmp0 and $1F) shl 6) or (sTmp1 and $3F));
       continue;
@@ -7493,11 +7683,7 @@ function libvlc_get_install_path() : string;
 
 {$IFDEF MSWINDOWS}
 var
-  reKey : HKEY;
-  reRes : Longint;
-  vType : DWORD;
-  vSize : DWORD;
-  vBuff : packed array[0..2047] of Char;
+  Reg: TRegistry;
 begin
   Result := '';
   // Search Local path
@@ -7505,21 +7691,18 @@ begin
   if FileExists(VLCLibraryPath + '\' + LibVlc) and
      FileExists(VLCLibraryPath + '\' + LibVlcCore)
   then Exit(VLCLibraryPath);
-  // Search Inatall VideoLAN path
-  FillChar(vBuff, sizeof(vBuff), 0);
-  reKey := INVALID_HANDLE_VALUE;
-  reRes := RegOpenKeyEx(HKEY_LOCAL_MACHINE, 'Software\VideoLAN\VLC', 0, KEY_READ, reKey);
-  if (reRes = ERROR_SUCCESS) then
-  begin
-    vSize := sizeof(vBuff);
-    vType := REG_SZ;
-    reRes := RegQueryValueEx(reKey, 'InstallDir', NIL, PDWORD(@vType), Pointer(@vBuff), PDWORD(@vSize));
-    if (reRes = ERROR_SUCCESS) and (vType = REG_SZ) then
+
+  Reg := TRegistry.Create(KEY_READ);
+  try
+    Reg.RootKey := HKEY_LOCAL_MACHINE;
+    if Reg.OpenKey('Software\VideoLAN\VLC', False) then
     begin
-      Result := string(PChar(@vBuff));
+      if Reg.ValueExists('InstallDir') then
+        Result := Reg.ReadString('InstallDir');
     end;
+  finally
+    Reg.Free; // Гарантированно закрывает ключ и освобождает память
   end;
-  RegCloseKey(reKey);
 end;
 {$ENDIF}
 
@@ -7560,19 +7743,22 @@ begin
 end;
 {$ENDIF}
 
-{$IFDEF UNIX}
+{$IFDEF LINUX}
   // Linux searches a library in the paths of the environment variable
   // LD_LIBRARY_PATH, then in /lib, then /usr/lib and finally the paths of
   // /etc/ld.so.conf.
 const
-  pathLst : array[0..6] of string = (
+  pathLst : array[0..9] of string = (
     '/usr/lib',
     '/lib',
     '/usr/local/lib',
     '/lib64',
     '/usr/lib64',
     '/usr/lib/x86_64-linux-gnu',
-    '/snap/vlc/current/usr/lib'
+    '/snap/vlc/current/usr/lib',
+    '/lib/aarch64-linux-gnu', //  Raspberry Pi 4, Ubuntu 64 bit - reported by Roger
+    '/usr/lib/aarch64-linux-gnu',
+    '/usr/lib/arm-linux-gnueabihf'
   );
 var
   pathIdx : Integer;
@@ -7646,7 +7832,7 @@ begin
 end;
 {$ENDIF}
 
-{$IFDEF UNIX}
+{$IFDEF LINUX}
 var
   sr : TSearchRec;
   re : Integer;
@@ -7705,20 +7891,20 @@ begin
 end;
 {$ENDIF}
 
-{$IFDEF UNIX}
+{$IFDEF LINUX}
 function libvlc_dll_get_proc_addr(
   var addr   : Pointer;
-  const name : PAnsiChar
+  const name : Pchar
   ) : Boolean;
 begin
-  addr := GetProcedureAddress(libvlc_handle, name);
+  addr := GetProcAddress(libvlc_handle, name);
   Result := (addr <> NIL);
   if not Result then
   begin
     libvlc_dynamic_dll_error :=
       'Entry point "' + name + '" not found!' + #13#10 +
       'Library: "' + libvlc_dynamic_dll_path + PathDelim + libvlc_dynamic_dll_file + '"'#13#10 +
-      'GetLastError() = ' + IntToStr(GetLastOSError());
+      'GetLastError() = ' + IntToStr(GetLastError());
   end;
 end;
 {$ENDIF}
@@ -7737,6 +7923,20 @@ begin
   {$ENDIF}
 end;
 
+procedure missing_in_version(function_name, current_version: string);
+begin
+  if IsConsole then
+  begin
+    WriteLn(function_name + ' is missing in libvlc ' + current_version);
+    Halt;
+  end;
+  {$IFDEF MSWINDOWS}
+  MessageBox(0, PChar(function_name + ' is missing in libvlc ' + current_version), 'libvlc', MB_ICONHAND or MB_OK);
+  {$ELSE}
+  ShowMessage(function_name + ' is missing in libvlc ' + current_version);
+  {$ENDIF}
+end;
+
 {$HINTS OFF}
 
 const
@@ -7747,7 +7947,7 @@ const
   VLC_VERSION_STR_210 = '2.1.0';
   VLC_VERSION_STR_220 = '2.2.0';
   VLC_VERSION_STR_300 = '3.0.0';
-  //VLC_VERSION_STR_400 = '4.0.0';
+  VLC_VERSION_STR_400 = '4.0.0';
 
 
 {$IFDEF DELPHI2005_UP}{$REGION '1.1.0'}{$ENDIF}
@@ -8851,6 +9051,452 @@ end;
 
 {$IFDEF DELPHI2005_UP}{$ENDREGION}{$ENDIF}
 
+{$IFDEF DELPHI2005_UP}{$REGION '4.0.0'}{$ENDIF}
+
+procedure require_version_libvlc_media_player_stop_async(
+    p_mi : libvlc_media_player_t_ptr
+  ); cdecl;
+begin
+  require_version('libvlc_media_player_stop_async', VLC_VERSION_STR_400);
+end;
+
+procedure require_version_libvlc_media_list_player_stop_async(
+    p_mi : libvlc_media_list_player_t_ptr
+  ); cdecl;
+begin
+  require_version('libvlc_media_list_player_stop_async', VLC_VERSION_STR_400);
+end;
+
+{$IFDEF DELPHI2005_UP}{$ENDREGION}{$ENDIF}
+
+{$IFDEF DELPHI2005_UP}{$REGION 'MISSING_IN_4.0.0'}{$ENDIF}
+
+function libvlc_event_type_name_missing_in_v4(
+  event_type : libvlc_event_type_t
+) : PAnsiChar; cdecl;
+begin
+  Result := NIL;
+  missing_in_version('libvlc_event_type_name', VLC_VERSION_STR_400);
+end;
+
+procedure libvlc_media_player_stop_missing_in_v4(
+  p_mi : libvlc_media_player_t_ptr
+); cdecl;
+begin
+  missing_in_version('libvlc_media_player_stop', VLC_VERSION_STR_400);
+end;
+
+procedure libvlc_media_player_set_agl_missing_in_v4(
+  p_mi     : libvlc_media_player_t_ptr;
+  drawable : LongWord
+); cdecl;
+begin
+  missing_in_version('libvlc_media_player_set_agl', VLC_VERSION_STR_400);
+end;
+
+function libvlc_media_player_get_agl_missing_in_v4(
+  p_mi : libvlc_media_player_t_ptr
+) : LongWord; cdecl;
+begin
+  Result := 0;
+  missing_in_version('libvlc_media_player_get_agl', VLC_VERSION_STR_400);
+end;
+
+function libvlc_media_player_will_play_missing_in_v4(
+  p_mi : libvlc_media_player_t_ptr
+) : Integer; cdecl;
+begin
+  Result := 0;
+  missing_in_version('libvlc_media_player_will_play', VLC_VERSION_STR_400);
+end;
+
+function libvlc_media_player_get_fps_missing_in_v4(
+  p_mi : libvlc_media_player_t_ptr
+) : Single; cdecl;
+begin
+  Result := 0;
+  missing_in_version('libvlc_media_player_get_fps', VLC_VERSION_STR_400);
+end;
+
+procedure libvlc_track_description_release_missing_in_v4(
+  p_track_description : libvlc_track_description_t_ptr
+); cdecl;
+begin
+  missing_in_version('libvlc_track_description_release', VLC_VERSION_STR_400);
+end;
+
+function libvlc_video_set_subtitle_file_missing_in_v4(
+  p_mi         : libvlc_media_player_t_ptr;
+  psz_subtitle : PAnsiChar
+) : Integer; cdecl;
+begin
+  Result := 0;
+  missing_in_version('libvlc_video_set_subtitle_file', VLC_VERSION_STR_400);
+end;
+
+function libvlc_video_get_title_description_missing_in_v4(
+  p_mi : libvlc_media_player_t_ptr
+) : libvlc_track_description_t_ptr; cdecl;
+begin
+  Result := NIL;
+  missing_in_version('libvlc_video_get_title_description', VLC_VERSION_STR_400);
+end;
+
+function libvlc_video_get_chapter_description_missing_in_v4(
+  p_mi    : libvlc_media_player_t_ptr;
+  i_title : Integer
+) : libvlc_track_description_t_ptr; cdecl;
+begin
+  Result := NIL;
+  missing_in_version('libvlc_video_get_chapter_description', VLC_VERSION_STR_400);
+end;
+
+function libvlc_video_get_crop_geometry_missing_in_v4(
+  p_mi : libvlc_media_player_t_ptr
+) : PAnsiChar; cdecl;
+begin
+  Result := NIL;
+  missing_in_version('libvlc_video_get_crop_geometry', VLC_VERSION_STR_400);
+end;
+
+procedure libvlc_video_set_crop_geometry_missing_in_v4(
+  p_mi         : libvlc_media_player_t_ptr;
+  psz_geometry : PAnsiChar
+); cdecl;
+begin
+  missing_in_version('libvlc_video_set_crop_geometry', VLC_VERSION_STR_400);
+end;
+
+procedure libvlc_toggle_teletext_missing_in_v4(
+  p_mi : libvlc_media_player_t_ptr
+); cdecl;
+begin
+  missing_in_version('libvlc_toggle_teletext', VLC_VERSION_STR_400);
+end;
+
+function libvlc_audio_output_get_device_type_missing_in_v4(
+  p_mi : libvlc_media_player_t_ptr
+) : libvlc_audio_output_device_types_t; cdecl;
+begin
+  Result := libvlc_AudioOutputDevice_Error;
+  missing_in_version('libvlc_audio_output_get_device_type', VLC_VERSION_STR_400);
+end;
+
+procedure libvlc_audio_output_set_device_type_missing_in_v4(
+  p_mi        : libvlc_media_player_t_ptr;
+  device_type : libvlc_audio_output_device_types_t
+); cdecl;
+begin
+  missing_in_version('libvlc_audio_output_set_device_type', VLC_VERSION_STR_400);
+end;
+
+procedure libvlc_media_list_player_stop_missing_in_v4(
+  p_mlp : libvlc_media_list_player_t_ptr
+); cdecl;
+begin
+  missing_in_version('libvlc_media_list_player_stop', VLC_VERSION_STR_400);
+end;
+
+function libvlc_media_library_new_missing_in_v4(
+  p_instance : libvlc_instance_t_ptr
+) : libvlc_media_library_t_ptr; cdecl;
+begin
+  Result := NIL;
+  missing_in_version('libvlc_media_library_new', VLC_VERSION_STR_400);
+end;
+
+procedure libvlc_media_library_release_missing_in_v4(
+  p_mlib : libvlc_media_library_t_ptr
+); cdecl;
+begin
+  missing_in_version('libvlc_media_library_release', VLC_VERSION_STR_400);
+end;
+
+procedure libvlc_media_library_retain_missing_in_v4(
+  p_mlib : libvlc_media_library_t_ptr
+); cdecl;
+begin
+  missing_in_version('libvlc_media_library_retain', VLC_VERSION_STR_400);
+end;
+
+function libvlc_media_library_load_missing_in_v4(
+  p_mlib : libvlc_media_library_t_ptr
+) : Integer; cdecl;
+begin
+  Result := 0;
+  missing_in_version('libvlc_media_library_load', VLC_VERSION_STR_400);
+end;
+
+function libvlc_media_library_media_list_missing_in_v4(
+  p_mlib : libvlc_media_library_t_ptr
+) : libvlc_media_list_t_ptr; cdecl;
+begin
+  Result := NIL;
+  missing_in_version('libvlc_media_library_media_list', VLC_VERSION_STR_400);
+end;
+
+function libvlc_media_discoverer_new_from_name_missing_in_v4(
+  p_inst   : libvlc_instance_t_ptr;
+  psz_name : PAnsiChar
+) : libvlc_media_discoverer_t_ptr; cdecl;
+begin
+  Result := NIL;
+  missing_in_version('libvlc_media_discoverer_new_from_name', VLC_VERSION_STR_400);
+end;
+
+function libvlc_media_discoverer_localized_name_missing_in_v4(
+  p_mdis : libvlc_media_discoverer_t_ptr
+) : PAnsiChar; cdecl;
+begin
+  Result := NIL;
+  missing_in_version('libvlc_media_discoverer_localized_name', VLC_VERSION_STR_400);
+end;
+
+function libvlc_media_discoverer_event_manager_missing_in_v4(
+  p_mdis : libvlc_media_discoverer_t_ptr
+) : libvlc_event_manager_t_ptr; cdecl;
+begin
+  Result := NIL;
+  missing_in_version('libvlc_media_discoverer_event_manager', VLC_VERSION_STR_400);
+end;
+
+procedure libvlc_vlm_release_missing_in_v4(
+  p_instance : libvlc_instance_t_ptr
+); cdecl;
+begin
+  missing_in_version('libvlc_vlm_release', VLC_VERSION_STR_400);
+end;
+
+function libvlc_vlm_add_broadcast_missing_in_v4(
+  p_instance   : libvlc_instance_t_ptr;
+  psz_name     : PAnsiChar;
+  psz_input    : PAnsiChar;
+  psz_output   : PAnsiChar;
+  i_options    : Integer;
+  ppsz_options : PPAnsiChar;
+  b_enabled    : Integer;
+  b_loop       : Integer
+) : Integer; cdecl;
+begin
+  Result := 0;
+  missing_in_version('libvlc_vlm_add_broadcast', VLC_VERSION_STR_400);
+end;
+
+function libvlc_vlm_add_vod_missing_in_v4(
+  p_instance   : libvlc_instance_t_ptr;
+  psz_name     : PAnsiChar;
+  psz_input    : PAnsiChar;
+  i_options    : Integer;
+  ppsz_options : PPAnsiChar;
+  b_enabled    : Integer;
+  psz_mux      : PAnsiChar
+) : Integer; cdecl;
+begin
+  Result := 0;
+  missing_in_version('libvlc_vlm_add_vod', VLC_VERSION_STR_400);
+end;
+
+function libvlc_vlm_del_media_missing_in_v4(
+  p_instance : libvlc_instance_t_ptr;
+  psz_name   : PAnsiChar
+) : Integer; cdecl;
+begin
+  Result := 0;
+  missing_in_version('libvlc_vlm_del_media', VLC_VERSION_STR_400);
+end;
+
+function libvlc_vlm_set_enabled_missing_in_v4(
+  p_instance : libvlc_instance_t_ptr;
+  psz_name   : PAnsiChar;
+  b_enabled  : Integer
+) : Integer; cdecl;
+begin
+  Result := 0;
+  missing_in_version('libvlc_vlm_set_enabled', VLC_VERSION_STR_400);
+end;
+
+function libvlc_vlm_set_output_missing_in_v4(
+  p_instance : libvlc_instance_t_ptr;
+  psz_name   : PAnsiChar;
+  psz_output : PAnsiChar
+) : Integer; cdecl;
+begin
+  Result := 0;
+  missing_in_version('libvlc_vlm_set_output', VLC_VERSION_STR_400);
+end;
+
+function libvlc_vlm_set_input_missing_in_v4(
+  p_instance : libvlc_instance_t_ptr;
+  psz_name   : PAnsiChar;
+  psz_input  : PAnsiChar
+) : Integer; cdecl;
+begin
+  Result := 0;
+  missing_in_version('libvlc_vlm_set_input', VLC_VERSION_STR_400);
+end;
+
+function libvlc_vlm_add_input_missing_in_v4(
+  p_instance : libvlc_instance_t_ptr;
+  psz_name   : PAnsiChar;
+  psz_input  : PAnsiChar
+) : Integer; cdecl;
+begin
+  Result := 0;
+  missing_in_version('libvlc_vlm_add_input', VLC_VERSION_STR_400);
+end;
+
+function libvlc_vlm_set_loop_missing_in_v4(
+  p_instance : libvlc_instance_t_ptr;
+  psz_name   : PAnsiChar;
+  b_loop     : Integer
+) : Integer; cdecl;
+begin
+  Result := 0;
+  missing_in_version('libvlc_vlm_set_loop', VLC_VERSION_STR_400);
+end;
+
+function libvlc_vlm_set_mux_missing_in_v4(
+  p_instance : libvlc_instance_t_ptr;
+  psz_name   : PAnsiChar;
+  psz_mux    : PAnsiChar
+) : Integer; cdecl;
+begin
+  Result := 0;
+  missing_in_version('libvlc_vlm_set_mux', VLC_VERSION_STR_400);
+end;
+
+function libvlc_vlm_change_media_missing_in_v4(
+  p_instance   : libvlc_instance_t_ptr;
+  psz_name     : PAnsiChar;
+  psz_input    : PAnsiChar;
+  psz_output   : PAnsiChar;
+  i_options    : Integer;
+  ppsz_options : PPAnsiChar;
+  b_enabled    : Integer;
+  b_loop       : Integer
+) : Integer; cdecl;
+begin
+  Result := 0;
+  missing_in_version('libvlc_vlm_change_media', VLC_VERSION_STR_400);
+end;
+
+function libvlc_vlm_play_media_missing_in_v4(
+  p_instance : libvlc_instance_t_ptr;
+  psz_name   : PAnsiChar
+) : Integer; cdecl;
+begin
+  Result := 0;
+  missing_in_version('libvlc_vlm_play_media', VLC_VERSION_STR_400);
+end;
+
+function libvlc_vlm_stop_media_missing_in_v4(
+  p_instance : libvlc_instance_t_ptr;
+  psz_name   : PAnsiChar
+) : Integer; cdecl;
+begin
+  Result := 0;
+  missing_in_version('libvlc_vlm_stop_media', VLC_VERSION_STR_400);
+end;
+
+function libvlc_vlm_pause_media_missing_in_v4(
+  p_instance : libvlc_instance_t_ptr;
+  psz_name   : PAnsiChar
+) : Integer; cdecl;
+begin
+  Result := 0;
+  missing_in_version('libvlc_vlm_pause_media', VLC_VERSION_STR_400);
+end;
+
+function libvlc_vlm_seek_media_missing_in_v4(
+  p_instance   : libvlc_instance_t_ptr;
+  psz_name     : PAnsiChar;
+  f_percentage : Single // float
+) : Integer; cdecl;
+begin
+  Result := 0;
+  missing_in_version('libvlc_vlm_seek_media', VLC_VERSION_STR_400);
+end;
+
+function libvlc_vlm_show_media_missing_in_v4(
+  p_instance : libvlc_instance_t_ptr;
+  psz_name   : PAnsiChar
+) : PAnsiChar; cdecl;
+begin
+  Result := NIL;
+  missing_in_version('libvlc_vlm_show_media', VLC_VERSION_STR_400);
+end;
+
+function libvlc_vlm_get_media_instance_position_missing_in_v4(
+  p_instance : libvlc_instance_t_ptr;
+  psz_name   : PAnsiChar;
+  i_instance : Integer
+) : Single; cdecl;
+begin
+  Result := 0;
+  missing_in_version('libvlc_vlm_get_media_instance_position', VLC_VERSION_STR_400);
+end;
+
+function libvlc_vlm_get_media_instance_time_missing_in_v4(
+  p_instance : libvlc_instance_t_ptr;
+  psz_name   : PAnsiChar;
+  i_instance : Integer
+) : Integer; cdecl;
+begin
+  Result := 0;
+  missing_in_version('libvlc_vlm_get_media_instance_time', VLC_VERSION_STR_400);
+end;
+
+function libvlc_vlm_get_media_instance_length_missing_in_v4(
+  p_instance : libvlc_instance_t_ptr;
+  psz_name   : PAnsiChar;
+  i_instance : Integer
+) : Integer; cdecl;
+begin
+  Result := 0;
+  missing_in_version('libvlc_vlm_get_media_instance_length', VLC_VERSION_STR_400);
+end;
+
+function libvlc_vlm_get_media_instance_rate_missing_in_v4(
+  p_instance : libvlc_instance_t_ptr;
+  psz_name   : PAnsiChar;
+  i_instance : Integer
+) : Integer; cdecl;
+begin
+  Result := 0;
+  missing_in_version('libvlc_vlm_get_media_instance_rate', VLC_VERSION_STR_400);
+end;
+
+// 1.1.0 - deprecated
+
+function libvlc_video_get_marquee_string_missing_in_v4(
+  p_mi   : libvlc_media_player_t_ptr;
+  option : libvlc_video_marquee_option_t
+) : PAnsiChar; cdecl;
+begin
+  Result := NIL;
+  missing_in_version('libvlc_video_get_marquee_string', VLC_VERSION_STR_400);
+end;
+
+function libvlc_vlm_get_event_manager_missing_in_v4(
+  p_instance : libvlc_instance_t_ptr
+) : libvlc_event_manager_t_ptr; cdecl;
+begin
+  Result := NIL;
+  missing_in_version('libvlc_vlm_get_event_manager', VLC_VERSION_STR_400);
+end;
+
+function libvlc_media_get_tracks_info_missing_in_v4(
+  p_md       : libvlc_media_t_ptr;
+  var tracks : libvlc_media_track_info_t_ptr
+) : Integer; cdecl;
+begin
+  Result := 0;
+  missing_in_version('libvlc_media_get_tracks_info', VLC_VERSION_STR_400);
+end;
+
+
+{$IFDEF DELPHI2005_UP}{$ENDREGION}{$ENDIF}
+
 {$HINTS ON}
 
 function read_dec_number(var ptr : PAnsiChar) : LongWord; overload;
@@ -8940,6 +9586,7 @@ begin
   libvlc_media_player_play := NIL;
   libvlc_media_player_pause := NIL;
   libvlc_media_player_stop := NIL;
+  libvlc_media_player_stop_async := NIL;
   libvlc_media_player_set_nsobject := NIL;
   libvlc_media_player_get_nsobject := NIL;
   libvlc_media_player_set_agl := NIL;
@@ -9054,6 +9701,7 @@ begin
   libvlc_media_list_player_play_item_at_index := NIL;
   libvlc_media_list_player_play_item := NIL;
   libvlc_media_list_player_stop := NIL;
+  libvlc_media_list_player_stop_async := NIL;
   libvlc_media_list_player_next := NIL;
   libvlc_media_library_new := NIL;
   libvlc_media_library_release := NIL;
@@ -9334,6 +9982,11 @@ begin
   libvlc_renderer_discoverer_event_manager          := @require_version_libvlc_renderer_discoverer_event_manager;
   libvlc_renderer_discoverer_list_get               := @require_version_libvlc_renderer_discoverer_list_get;
   libvlc_renderer_discoverer_list_release           := @require_version_libvlc_renderer_discoverer_list_release;
+
+  (* 4.0.0 *)
+  libvlc_media_player_stop_async                    := @require_version_libvlc_media_player_stop_async;
+  libvlc_media_list_player_stop_async               := @require_version_libvlc_media_list_player_stop_async;
+
 end;
 
 function libvlc_dynamic_dll_architecture(file_path_name : string) : Integer;
@@ -9468,7 +10121,7 @@ begin
   end;
 end;
 {$ENDIF}
-{$IFDEF UNIX}
+{$IFDEF LINUX}
 // http://en.wikipedia.org/wiki/Executable_and_Linkable_Format
 type
   TElfHeader = packed record
@@ -9649,7 +10302,7 @@ begin
 
 {$IFDEF MSWINDOWS}
   // SetErrorMode(SEM_FAILCRITICALERRORS);
-  SetErrorMode(SEM_FAILCRITICALERRORS or SEM_NOALIGNMENTFAULTEXCEPT);
+  SetErrorMode(SEM_FAILCRITICALERRORS or SEM_NOALIGNMENTFAULTEXCEPT or SEM_NOGPFAULTERRORBOX);
 {$ENDIF};
 
   libvlc_dynamic_dll_vlc_version_str := '';
@@ -9714,7 +10367,14 @@ begin
   {$IFDEF CPUX64}
     if (($02010500 <= libvlc_dynamic_dll_product_version_bin) and (libvlc_dynamic_dll_product_version_bin <= $02020200)) then
     begin
-      LoadLibrary('libgcc_s_seh-1.dll');
+      if (libvlc_dynamic_dll_path <> '') then
+      begin
+        LoadLibrary(PChar(libvlc_dynamic_dll_path + PathDelim + 'libgcc_s_seh-1.dll'));
+      end
+      else
+      begin
+        LoadLibrary('libgcc_s_seh-1.dll');
+      end;
     end;
   {$ENDIF}
 {$ENDIF}
@@ -9737,8 +10397,8 @@ begin
   begin
     libvlc_dynamic_dll_error :=
       'Library not found ' + LIBVLCCORE_BASE_DLL_NAME + ', '
-{$IFDEF UNIX}
-      + 'GetLastError() = ' + IntToStr(GetLastOSError())
+{$IFDEF LINUX}
+      + 'GetLastError() = ' + IntToStr(GetLastError())
 {$ENDIF}
 {$IFDEF MSWINDOWS}
       + 'GetLastError() = ' + IntToStr(GetLastError())
@@ -9768,8 +10428,8 @@ begin
   begin
     libvlc_dynamic_dll_error :=
       'Library not found ' + LIBVLC_BASE_DLL_NAME + ', '
-{$IFDEF UNIX}
-      + 'GetLastError() = ' + IntToStr(GetLastOSError())
+{$IFDEF LINUX}
+      + 'GetLastError() = ' + IntToStr(GetLastError())
 {$ENDIF}
 {$IFDEF MSWINDOWS}
       + 'GetLastError() = ' + IntToStr(GetLastError())
@@ -9780,7 +10440,7 @@ begin
       + '';
     exit;
   end;
-  
+
   libvlc_reset_function_pointers(TRUE);
 
   (****************************************************************************)
@@ -9806,7 +10466,7 @@ begin
       ', minimum supported version is 1.0.0';
     exit;
   end;
-  
+
   (****************************************************************************)
 
   if not libvlc_dll_get_proc_addr(@libvlc_new,
@@ -9838,8 +10498,16 @@ begin
   if not libvlc_dll_get_proc_addr(@libvlc_event_detach,
     'libvlc_event_detach') then exit;
 
-  if not libvlc_dll_get_proc_addr(@libvlc_event_type_name,
-    'libvlc_event_type_name') then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_040000) then
+  begin
+      if not libvlc_dll_get_proc_addr(@libvlc_event_type_name,
+        'libvlc_event_type_name') then exit;
+  end
+  else
+  begin
+    libvlc_event_type_name := {libvlc_event_type_name_missing_in_v4}nil;
+  end;
+
 
 {$IFDEF USE_VLC_DEPRECATED_API}
   if not libvlc_dll_get_proc_addr(@libvlc_get_log_verbosity,
@@ -9942,8 +10610,15 @@ begin
   if not libvlc_dll_get_proc_addr(@libvlc_media_player_pause,
     'libvlc_media_player_pause') then exit;
 
-  if not libvlc_dll_get_proc_addr(@libvlc_media_player_stop,
-    'libvlc_media_player_stop') then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_040000) then
+  begin
+    if not libvlc_dll_get_proc_addr(@libvlc_media_player_stop,
+      'libvlc_media_player_stop') then exit;
+  end
+  else
+  begin
+    libvlc_media_player_stop := {libvlc_media_player_stop_missing_in_v4}nil;
+  end;
 
   if not libvlc_dll_get_proc_addr(@libvlc_media_player_set_nsobject,
     'libvlc_media_player_set_nsobject') then exit;
@@ -9951,11 +10626,25 @@ begin
   if not libvlc_dll_get_proc_addr(@libvlc_media_player_get_nsobject,
     'libvlc_media_player_get_nsobject') then exit;
 
-  if not libvlc_dll_get_proc_addr(@libvlc_media_player_set_agl,
-    'libvlc_media_player_set_agl') then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_040000) then
+  begin
+    if not libvlc_dll_get_proc_addr(@libvlc_media_player_set_agl,
+      'libvlc_media_player_set_agl') then exit;
+  end
+  else
+  begin
+    libvlc_media_player_set_agl := {libvlc_media_player_set_agl_missing_in_v4}nil;
+  end;
 
-  if not libvlc_dll_get_proc_addr(@libvlc_media_player_get_agl,
-    'libvlc_media_player_get_agl') then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_040000) then
+  begin
+    if not libvlc_dll_get_proc_addr(@libvlc_media_player_get_agl,
+      'libvlc_media_player_get_agl') then exit;
+  end
+  else
+  begin
+    libvlc_media_player_get_agl := {libvlc_media_player_get_agl_missing_in_v4}nil;
+  end;
 
   if not libvlc_dll_get_proc_addr(@libvlc_media_player_set_xwindow,
     'libvlc_media_player_set_xwindow') then exit;
@@ -9993,8 +10682,15 @@ begin
   if not libvlc_dll_get_proc_addr(@libvlc_media_player_get_chapter_count,
     'libvlc_media_player_get_chapter_count') then exit;
 
-  if not libvlc_dll_get_proc_addr(@libvlc_media_player_will_play,
-    'libvlc_media_player_will_play') then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_040000) then
+  begin
+    if not libvlc_dll_get_proc_addr(@libvlc_media_player_will_play,
+      'libvlc_media_player_will_play') then exit;
+  end
+  else
+  begin
+    libvlc_media_player_will_play := {libvlc_media_player_will_play_missing_in_v4}nil;
+  end;
 
   if not libvlc_dll_get_proc_addr(@libvlc_media_player_get_chapter_count_for_title,
     'libvlc_media_player_get_chapter_count_for_title') then exit;
@@ -10023,8 +10719,15 @@ begin
   if not libvlc_dll_get_proc_addr(@libvlc_media_player_get_state,
     'libvlc_media_player_get_state') then exit;
 
-  if not libvlc_dll_get_proc_addr(@libvlc_media_player_get_fps,
-    'libvlc_media_player_get_fps') then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_040000) then
+  begin
+    if not libvlc_dll_get_proc_addr(@libvlc_media_player_get_fps,
+      'libvlc_media_player_get_fps') then exit;
+  end
+  else
+  begin
+    libvlc_media_player_get_fps := {libvlc_media_player_get_fps_missing_in_v4}nil;
+  end;
 
   if not libvlc_dll_get_proc_addr(@libvlc_media_player_has_vout,
     'libvlc_media_player_has_vout') then exit;
@@ -10035,8 +10738,15 @@ begin
   if not libvlc_dll_get_proc_addr(@libvlc_media_player_can_pause,
     'libvlc_media_player_can_pause') then exit;
 
-  if not libvlc_dll_get_proc_addr(@libvlc_track_description_release,
-    'libvlc_track_description_release') then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_040000) then
+  begin
+    if not libvlc_dll_get_proc_addr(@libvlc_track_description_release,
+      'libvlc_track_description_release') then exit;
+  end
+  else
+  begin
+    libvlc_track_description_release := {libvlc_track_description_release_missing_in_v4}nil;
+  end;
 
   if not libvlc_dll_get_proc_addr(@libvlc_toggle_fullscreen,
     'libvlc_toggle_fullscreen') then exit;
@@ -10079,20 +10789,55 @@ begin
   if not libvlc_dll_get_proc_addr(@libvlc_video_set_spu,
     'libvlc_video_set_spu') then exit;
 
-  if not libvlc_dll_get_proc_addr(@libvlc_video_set_subtitle_file,
-    'libvlc_video_set_subtitle_file') then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_040000) then
+  begin
+    if not libvlc_dll_get_proc_addr(@libvlc_video_set_subtitle_file,
+      'libvlc_video_set_subtitle_file') then exit;
+  end
+  else
+  begin
+    libvlc_video_set_subtitle_file := {libvlc_video_set_subtitle_file_missing_in_v4}nil;
+  end;
 
-  if not libvlc_dll_get_proc_addr(@libvlc_video_get_title_description,
-    'libvlc_video_get_title_description') then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_040000) then
+  begin
+    if not libvlc_dll_get_proc_addr(@libvlc_video_get_title_description,
+      'libvlc_video_get_title_description') then exit;
+  end
+  else
+  begin
+    libvlc_video_get_title_description := {libvlc_video_get_title_description_missing_in_v4}nil;
+  end;
 
-  if not libvlc_dll_get_proc_addr(@libvlc_video_get_chapter_description,
-    'libvlc_video_get_chapter_description') then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_040000) then
+  begin
+    if not libvlc_dll_get_proc_addr(@libvlc_video_get_chapter_description,
+      'libvlc_video_get_chapter_description') then exit;
+  end
+  else
+  begin
+    libvlc_video_get_chapter_description := {libvlc_video_get_chapter_description_missing_in_v4}nil;
+  end;
 
-  if not libvlc_dll_get_proc_addr(@libvlc_video_get_crop_geometry,
-    'libvlc_video_get_crop_geometry') then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_040000) then
+  begin
+    if not libvlc_dll_get_proc_addr(@libvlc_video_get_crop_geometry,
+      'libvlc_video_get_crop_geometry') then exit;
+  end
+  else
+  begin
+    libvlc_video_get_crop_geometry := {libvlc_video_get_crop_geometry_missing_in_v4}nil;
+  end;
 
-  if not libvlc_dll_get_proc_addr(@libvlc_video_set_crop_geometry,
-    'libvlc_video_set_crop_geometry') then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_040000) then
+  begin
+    if not libvlc_dll_get_proc_addr(@libvlc_video_set_crop_geometry,
+      'libvlc_video_set_crop_geometry') then exit;
+  end
+  else
+  begin
+    libvlc_video_set_crop_geometry := {libvlc_video_set_crop_geometry_missing_in_v4}nil;
+  end;
 
   if not libvlc_dll_get_proc_addr(@libvlc_video_get_teletext,
     'libvlc_video_get_teletext') then exit;
@@ -10100,8 +10845,15 @@ begin
   if not libvlc_dll_get_proc_addr(@libvlc_video_set_teletext,
     'libvlc_video_set_teletext') then exit;
 
-  if not libvlc_dll_get_proc_addr(@libvlc_toggle_teletext,
-    'libvlc_toggle_teletext') then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_040000) then
+  begin
+    if not libvlc_dll_get_proc_addr(@libvlc_toggle_teletext,
+      'libvlc_toggle_teletext') then exit;
+  end
+  else
+  begin
+    libvlc_toggle_teletext := {libvlc_toggle_teletext_missing_in_v4}nil;
+  end;
 
   if not libvlc_dll_get_proc_addr(@libvlc_video_get_track_count,
     'libvlc_video_get_track_count') then exit;
@@ -10141,11 +10893,25 @@ begin
   if not libvlc_dll_get_proc_addr(@libvlc_audio_output_device_set,
     'libvlc_audio_output_device_set') then exit;
 
-  if not libvlc_dll_get_proc_addr(@libvlc_audio_output_get_device_type,
-    'libvlc_audio_output_get_device_type') then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_040000) then
+  begin
+    if not libvlc_dll_get_proc_addr(@libvlc_audio_output_get_device_type,
+      'libvlc_audio_output_get_device_type') then exit;
+  end
+  else
+  begin
+    libvlc_audio_output_get_device_type := {libvlc_audio_output_get_device_type_missing_in_v4}nil;
+  end;
 
-  if not libvlc_dll_get_proc_addr(@libvlc_audio_output_set_device_type,
-    'libvlc_audio_output_set_device_type') then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_040000) then
+  begin
+    if not libvlc_dll_get_proc_addr(@libvlc_audio_output_set_device_type,
+      'libvlc_audio_output_set_device_type') then exit;
+  end
+  else
+  begin
+    libvlc_audio_output_set_device_type := {libvlc_audio_output_set_device_type_missing_in_v4}nil;
+  end;
 
   if not libvlc_dll_get_proc_addr(@libvlc_audio_toggle_mute,
     'libvlc_audio_toggle_mute') then exit;
@@ -10260,104 +11026,307 @@ begin
   if not libvlc_dll_get_proc_addr(@libvlc_media_list_player_play_item,
     'libvlc_media_list_player_play_item') then exit;
 
-  if not libvlc_dll_get_proc_addr(@libvlc_media_list_player_stop,
-    'libvlc_media_list_player_stop') then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_040000) then
+  begin
+    if not libvlc_dll_get_proc_addr(@libvlc_media_list_player_stop,
+      'libvlc_media_list_player_stop') then exit;
+  end
+  else
+  begin
+    libvlc_media_list_player_stop := {libvlc_media_list_player_stop_missing_in_v4}nil;
+  end;
 
   if not libvlc_dll_get_proc_addr(@libvlc_media_list_player_next,
     'libvlc_media_list_player_next') then exit;
 
-  if not libvlc_dll_get_proc_addr(@libvlc_media_library_new,
-    'libvlc_media_library_new') then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_040000) then
+  begin
+    if not libvlc_dll_get_proc_addr(@libvlc_media_library_new,
+      'libvlc_media_library_new') then exit;
+  end
+  else
+  begin
+    libvlc_media_library_new := {libvlc_media_library_new_missing_in_v4}nil;
+  end;
 
-  if not libvlc_dll_get_proc_addr(@libvlc_media_library_release,
-    'libvlc_media_library_release') then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_040000) then
+  begin
+    if not libvlc_dll_get_proc_addr(@libvlc_media_library_release,
+      'libvlc_media_library_release') then exit;
+  end
+  else
+  begin
+    libvlc_media_library_release := {libvlc_media_library_release_missing_in_v4}nil;
+  end;
 
-  if not libvlc_dll_get_proc_addr(@libvlc_media_library_retain,
-    'libvlc_media_library_retain') then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_040000) then
+  begin
+    if not libvlc_dll_get_proc_addr(@libvlc_media_library_retain,
+      'libvlc_media_library_retain') then exit;
+  end
+  else
+  begin
+    libvlc_media_library_retain := {libvlc_media_library_retain_missing_in_v4}nil;
+  end;
 
-  if not libvlc_dll_get_proc_addr(@libvlc_media_library_load,
-    'libvlc_media_library_load') then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_040000) then
+  begin
+    if not libvlc_dll_get_proc_addr(@libvlc_media_library_load,
+      'libvlc_media_library_load') then exit;
+  end
+  else
+  begin
+    libvlc_media_library_load := {libvlc_media_library_load_missing_in_v4}nil;
+  end;
 
-  if not libvlc_dll_get_proc_addr(@libvlc_media_library_media_list,
-    'libvlc_media_library_media_list') then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_040000) then
+  begin
+    if not libvlc_dll_get_proc_addr(@libvlc_media_library_media_list,
+      'libvlc_media_library_media_list') then exit;
+  end
+  else
+  begin
+    libvlc_media_library_media_list := {libvlc_media_library_media_list_missing_in_v4}nil;
+  end;
 
-  if not libvlc_dll_get_proc_addr(@libvlc_media_discoverer_new_from_name,
-    'libvlc_media_discoverer_new_from_name') then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_040000) then
+  begin
+    if not libvlc_dll_get_proc_addr(@libvlc_media_discoverer_new_from_name,
+      'libvlc_media_discoverer_new_from_name') then exit;
+  end
+  else
+  begin
+    libvlc_media_discoverer_new_from_name := {libvlc_media_discoverer_new_from_name_missing_in_v4}nil;
+  end;
 
   if not libvlc_dll_get_proc_addr(@libvlc_media_discoverer_release,
     'libvlc_media_discoverer_release') then exit;
 
-  if not libvlc_dll_get_proc_addr(@libvlc_media_discoverer_localized_name,
-    'libvlc_media_discoverer_localized_name') then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_040000) then
+  begin
+    if not libvlc_dll_get_proc_addr(@libvlc_media_discoverer_localized_name,
+      'libvlc_media_discoverer_localized_name') then exit;
+  end
+  else
+  begin
+    libvlc_media_discoverer_localized_name := {libvlc_media_discoverer_localized_name_missing_in_v4}nil;
+  end;
 
   if not libvlc_dll_get_proc_addr(@libvlc_media_discoverer_media_list,
     'libvlc_media_discoverer_media_list') then exit;
 
-  if not libvlc_dll_get_proc_addr(@libvlc_media_discoverer_event_manager,
-    'libvlc_media_discoverer_event_manager') then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_040000) then
+  begin
+    if not libvlc_dll_get_proc_addr(@libvlc_media_discoverer_event_manager,
+      'libvlc_media_discoverer_event_manager') then exit;
+  end
+  else
+  begin
+    libvlc_media_discoverer_event_manager := {libvlc_media_discoverer_event_manager_missing_in_v4}nil;
+  end;
 
   if not libvlc_dll_get_proc_addr(@libvlc_media_discoverer_is_running,
     'libvlc_media_discoverer_is_running') then exit;
 
-  if not libvlc_dll_get_proc_addr(@libvlc_vlm_release,
-    'libvlc_vlm_release') then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_040000) then
+  begin
+    if not libvlc_dll_get_proc_addr(@libvlc_vlm_release,
+      'libvlc_vlm_release') then exit;
+  end
+  else
+  begin
+    libvlc_vlm_release := {libvlc_vlm_release_missing_in_v4}nil;
+  end;
 
-  if not libvlc_dll_get_proc_addr(@libvlc_vlm_add_broadcast,
-    'libvlc_vlm_add_broadcast') then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_040000) then
+  begin
+    if not libvlc_dll_get_proc_addr(@libvlc_vlm_add_broadcast,
+      'libvlc_vlm_add_broadcast') then exit;
+  end
+  else
+  begin
+    libvlc_vlm_add_broadcast := {libvlc_vlm_add_broadcast_missing_in_v4}nil;
+  end;
 
-  if not libvlc_dll_get_proc_addr(@libvlc_vlm_add_vod,
-    'libvlc_vlm_add_vod') then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_040000) then
+  begin
+    if not libvlc_dll_get_proc_addr(@libvlc_vlm_add_vod,
+      'libvlc_vlm_add_vod') then exit;
+  end
+  else
+  begin
+    libvlc_vlm_add_vod := {libvlc_vlm_add_vod_missing_in_v4}nil;
+  end;
 
-  if not libvlc_dll_get_proc_addr(@libvlc_vlm_del_media,
-    'libvlc_vlm_del_media') then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_040000) then
+  begin
+    if not libvlc_dll_get_proc_addr(@libvlc_vlm_del_media,
+      'libvlc_vlm_del_media') then exit;
+  end
+  else
+  begin
+    libvlc_vlm_del_media := {libvlc_vlm_del_media_missing_in_v4}nil;
+  end;
 
-  if not libvlc_dll_get_proc_addr(@libvlc_vlm_set_enabled,
-    'libvlc_vlm_set_enabled') then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_040000) then
+  begin
+    if not libvlc_dll_get_proc_addr(@libvlc_vlm_set_enabled,
+      'libvlc_vlm_set_enabled') then exit;
+  end
+  else
+  begin
+    libvlc_vlm_set_enabled := {libvlc_vlm_set_enabled_missing_in_v4}nil;
+  end;
 
-  if not libvlc_dll_get_proc_addr(@libvlc_vlm_set_output,
-    'libvlc_vlm_set_output') then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_040000) then
+  begin
+    if not libvlc_dll_get_proc_addr(@libvlc_vlm_set_output,
+      'libvlc_vlm_set_output') then exit;
+  end
+  else
+  begin
+    libvlc_vlm_set_output := {libvlc_vlm_set_output_missing_in_v4}nil;
+  end;
 
-  if not libvlc_dll_get_proc_addr(@libvlc_vlm_set_input,
-    'libvlc_vlm_set_input') then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_040000) then
+  begin
+    if not libvlc_dll_get_proc_addr(@libvlc_vlm_set_input,
+      'libvlc_vlm_set_input') then exit;
+  end
+  else
+  begin
+    libvlc_vlm_set_input := {libvlc_vlm_set_input_missing_in_v4}nil;
+  end;
 
-  if not libvlc_dll_get_proc_addr(@libvlc_vlm_add_input,
-    'libvlc_vlm_add_input') then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_040000) then
+  begin
+    if not libvlc_dll_get_proc_addr(@libvlc_vlm_add_input,
+      'libvlc_vlm_add_input') then exit;
+  end
+  else
+  begin
+    libvlc_vlm_add_input := {libvlc_vlm_add_input_missing_in_v4}nil;
+  end;
 
-  if not libvlc_dll_get_proc_addr(@libvlc_vlm_set_loop,
-    'libvlc_vlm_set_loop') then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_040000) then
+  begin
+    if not libvlc_dll_get_proc_addr(@libvlc_vlm_set_loop,
+      'libvlc_vlm_set_loop') then exit;
+  end
+  else
+  begin
+    libvlc_vlm_set_loop := {libvlc_vlm_set_loop_missing_in_v4}nil;
+  end;
 
-  if not libvlc_dll_get_proc_addr(@libvlc_vlm_set_mux,
-    'libvlc_vlm_set_mux') then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_040000) then
+  begin
+    if not libvlc_dll_get_proc_addr(@libvlc_vlm_set_mux,
+      'libvlc_vlm_set_mux') then exit;
+  end
+  else
+  begin
+    libvlc_vlm_set_mux := {libvlc_vlm_set_mux_missing_in_v4}nil;
+  end;
 
-  if not libvlc_dll_get_proc_addr(@libvlc_vlm_change_media,
-    'libvlc_vlm_change_media') then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_040000) then
+  begin
+    if not libvlc_dll_get_proc_addr(@libvlc_vlm_change_media,
+      'libvlc_vlm_change_media') then exit;
+  end
+  else
+  begin
+    libvlc_vlm_change_media := {libvlc_vlm_change_media_missing_in_v4}nil;
+  end;
 
-  if not libvlc_dll_get_proc_addr(@libvlc_vlm_play_media,
-    'libvlc_vlm_play_media') then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_040000) then
+  begin
+    if not libvlc_dll_get_proc_addr(@libvlc_vlm_play_media,
+      'libvlc_vlm_play_media') then exit;
+  end
+  else
+  begin
+    libvlc_vlm_play_media := {libvlc_vlm_play_media_missing_in_v4}nil;
+  end;
 
-  if not libvlc_dll_get_proc_addr(@libvlc_vlm_stop_media,
-    'libvlc_vlm_stop_media') then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_040000) then
+  begin
+    if not libvlc_dll_get_proc_addr(@libvlc_vlm_stop_media,
+      'libvlc_vlm_stop_media') then exit;
+  end
+  else
+  begin
+    libvlc_vlm_stop_media := {libvlc_vlm_stop_media_missing_in_v4}nil;
+  end;
 
-  if not libvlc_dll_get_proc_addr(@libvlc_vlm_pause_media,
-    'libvlc_vlm_pause_media') then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_040000) then
+  begin
+    if not libvlc_dll_get_proc_addr(@libvlc_vlm_pause_media,
+      'libvlc_vlm_pause_media') then exit;
+  end
+  else
+  begin
+    libvlc_vlm_pause_media := {libvlc_vlm_pause_media_missing_in_v4}nil;
+  end;
 
-  if not libvlc_dll_get_proc_addr(@libvlc_vlm_seek_media,
-    'libvlc_vlm_seek_media') then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_040000) then
+  begin
+    if not libvlc_dll_get_proc_addr(@libvlc_vlm_seek_media,
+      'libvlc_vlm_seek_media') then exit;
+  end
+  else
+  begin
+    libvlc_vlm_seek_media := {libvlc_vlm_seek_media_missing_in_v4}nil;
+  end;
 
-  if not libvlc_dll_get_proc_addr(@libvlc_vlm_show_media,
-    'libvlc_vlm_show_media') then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_040000) then
+  begin
+    if not libvlc_dll_get_proc_addr(@libvlc_vlm_show_media,
+      'libvlc_vlm_show_media') then exit;
+  end
+  else
+  begin
+    libvlc_vlm_show_media := {libvlc_vlm_show_media_missing_in_v4}nil;
+  end;
 
-  if not libvlc_dll_get_proc_addr(@libvlc_vlm_get_media_instance_position,
-    'libvlc_vlm_get_media_instance_position') then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_040000) then
+  begin
+    if not libvlc_dll_get_proc_addr(@libvlc_vlm_get_media_instance_position,
+      'libvlc_vlm_get_media_instance_position') then exit;
+  end
+  else
+  begin
+    libvlc_vlm_get_media_instance_position := {libvlc_vlm_get_media_instance_position_missing_in_v4}nil;
+  end;
 
-  if not libvlc_dll_get_proc_addr(@libvlc_vlm_get_media_instance_time,
-    'libvlc_vlm_get_media_instance_time') then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_040000) then
+  begin
+    if not libvlc_dll_get_proc_addr(@libvlc_vlm_get_media_instance_time,
+      'libvlc_vlm_get_media_instance_time') then exit;
+  end
+  else
+  begin
+    libvlc_vlm_get_media_instance_time := {libvlc_vlm_get_media_instance_time_missing_in_v4}nil;
+  end;
 
-  if not libvlc_dll_get_proc_addr(@libvlc_vlm_get_media_instance_length,
-    'libvlc_vlm_get_media_instance_length') then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_040000) then
+  begin
+    if not libvlc_dll_get_proc_addr(@libvlc_vlm_get_media_instance_length,
+      'libvlc_vlm_get_media_instance_length') then exit;
+  end
+  else
+  begin
+    libvlc_vlm_get_media_instance_length := {libvlc_vlm_get_media_instance_length_missing_in_v4}nil;
+  end;
 
-  if not libvlc_dll_get_proc_addr(@libvlc_vlm_get_media_instance_rate,
-    'libvlc_vlm_get_media_instance_rate') then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_040000) then
+  begin
+    if not libvlc_dll_get_proc_addr(@libvlc_vlm_get_media_instance_rate,
+      'libvlc_vlm_get_media_instance_rate') then exit;
+  end
+  else
+  begin
+    libvlc_vlm_get_media_instance_rate := {libvlc_vlm_get_media_instance_rate_missing_in_v4}nil;
+  end;
 
 {$IFDEF IS_0_GT_1}
    if not libvlc_dll_get_proc_addr(@libvlc_vlm_get_media_instance_title,
@@ -10374,7 +11343,7 @@ begin
 {$ENDIF}
 
   (****************************************************************************)
-  if (libvlc_dynamic_dll_vlc_version_bin < $010100) then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_010100) then exit;
   (****************************************************************************)
 
   if not libvlc_dll_get_proc_addr(@libvlc_errmsg,
@@ -10392,8 +11361,15 @@ begin
   if not libvlc_dll_get_proc_addr(@libvlc_video_get_marquee_int,
     'libvlc_video_get_marquee_int') then exit;
 
-  if not libvlc_dll_get_proc_addr(@libvlc_video_get_marquee_string,
-    'libvlc_video_get_marquee_string') then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_040000) then
+  begin
+    if not libvlc_dll_get_proc_addr(@libvlc_video_get_marquee_string,
+      'libvlc_video_get_marquee_string') then exit;
+  end
+  else
+  begin
+    libvlc_video_get_marquee_string := {libvlc_video_get_marquee_string_missing_in_v4}nil;
+  end;
 
   if not libvlc_dll_get_proc_addr(@libvlc_video_set_marquee_int,
     'libvlc_video_set_marquee_int') then exit;
@@ -10437,8 +11413,15 @@ begin
   if not libvlc_dll_get_proc_addr(@libvlc_media_player_next_frame,
     'libvlc_media_player_next_frame') then exit;
 
-  if not libvlc_dll_get_proc_addr(@libvlc_vlm_get_event_manager,
-    'libvlc_vlm_get_event_manager') then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_040000) then
+  begin
+    if not libvlc_dll_get_proc_addr(@libvlc_vlm_get_event_manager,
+      'libvlc_vlm_get_event_manager') then exit;
+  end
+  else
+  begin
+    libvlc_vlm_get_event_manager := {libvlc_vlm_get_event_manager_missing_in_v4}nil;
+  end;
 
   if not libvlc_dll_get_proc_addr(@libvlc_media_parse,
     'libvlc_media_parse') then exit;
@@ -10467,11 +11450,18 @@ begin
   if not libvlc_dll_get_proc_addr(@libvlc_media_get_stats,
     'libvlc_media_get_stats') then exit;
 
-  if not libvlc_dll_get_proc_addr(@libvlc_media_get_tracks_info,
-    'libvlc_media_get_tracks_info') then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_040000) then
+  begin
+    if not libvlc_dll_get_proc_addr(@libvlc_media_get_tracks_info,
+      'libvlc_media_get_tracks_info') then exit;
+  end
+  else
+  begin
+    libvlc_media_get_tracks_info := {libvlc_media_get_tracks_info_missing_in_v4}nil;
+  end;
 
   (****************************************************************************)
-  if (libvlc_dynamic_dll_vlc_version_bin < $010101) then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_010101) then exit;
   (****************************************************************************)
     
   if not libvlc_dll_get_proc_addr(@libvlc_video_set_format,
@@ -10505,14 +11495,14 @@ begin
     'libvlc_video_set_adjust_float') then exit;
 
   (****************************************************************************)
-  if (libvlc_dynamic_dll_vlc_version_bin < $010105) then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_010105) then exit;
   (****************************************************************************)
 
   if not libvlc_dll_get_proc_addr(@libvlc_media_new_fd,
     'libvlc_media_new_fd') then exit;
 
   (****************************************************************************)
-  if (libvlc_dynamic_dll_vlc_version_bin < $020000) then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_020000) then exit;
   (****************************************************************************)
 
   if not libvlc_dll_get_proc_addr(@libvlc_video_filter_list_get,
@@ -10561,7 +11551,7 @@ begin
     'libvlc_track_description_list_release') then exit;
 
   (****************************************************************************)
-  if (libvlc_dynamic_dll_vlc_version_bin < $020100) then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_020100) then exit;
   (****************************************************************************)
 
   if not libvlc_dll_get_proc_addr(@libvlc_media_player_set_video_title_display,
@@ -10598,7 +11588,7 @@ begin
     'libvlc_log_set_file') then exit;
 
   (****************************************************************************)
-  if (libvlc_dynamic_dll_vlc_version_bin < $020200) then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_020200) then exit;
   (****************************************************************************)
 
   if not libvlc_dll_get_proc_addr(@libvlc_media_player_program_scrambled,
@@ -10644,7 +11634,7 @@ begin
     'libvlc_media_player_set_equalizer') then exit;
 
   (****************************************************************************)
-  if (libvlc_dynamic_dll_vlc_version_bin < $030000) then exit;
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_030000) then exit;
   (****************************************************************************)
 
   if not libvlc_dll_get_proc_addr(@libvlc_media_new_callbacks,
@@ -10800,6 +11790,16 @@ begin
 
   if not libvlc_dll_get_proc_addr(@libvlc_renderer_discoverer_list_release,
     'libvlc_renderer_discoverer_list_release') then exit;
+
+  (****************************************************************************)
+  if (libvlc_dynamic_dll_vlc_version_bin < VLC_VERSION_BIN_040000) then exit;
+  (****************************************************************************)
+
+  if not libvlc_dll_get_proc_addr(@libvlc_media_player_stop_async,
+      'libvlc_media_player_stop_async') then exit;
+
+  if not libvlc_dll_get_proc_addr(@libvlc_media_list_player_stop_async,
+    'libvlc_media_list_player_stop_async') then exit;
 end;
 {$WARNINGS ON}
 
@@ -10819,8 +11819,8 @@ begin
     {$IFDEF MACOS}
     if FreeLibrary(libvlc_handle) then
     {$ENDIF}
-    {$IFDEF UNIX}
-    if UnloadLibrary(libvlc_handle) then
+    {$IFDEF LINUX}
+    if FreeLibrary(libvlc_handle) then
     {$ENDIF}
     begin
       libvlc_handle := 0;
@@ -10837,8 +11837,8 @@ begin
     {$IFDEF MACOS}
     if FreeLibrary(libvlccore_handle) then
     {$ENDIF}
-    {$IFDEF UNIX}
-    if UnloadLibrary(libvlccore_handle) then
+    {$IFDEF LINUX}
+    if FreeLibrary(libvlccore_handle) then
     {$ENDIF}
     begin
       libvlccore_handle := 0;
@@ -10902,9 +11902,19 @@ end;
 procedure libvlc_media_player_set_display_window(
   p_mi : libvlc_media_player_t_ptr;
   window_handle : TPasLibVlcWinHandle);
+{$IFDEF MSWINDOWS}
+var
+  i_style : {$IFDEF CPUX64}Int64{$ELSE}Integer{$ENDIF};
+{$ENDIF}
 begin
   {$IFDEF FPC}
     {$IFDEF MSWINDOWS}
+      i_style := GetWindowLong(window_handle, GWL_STYLE);
+      if (0 = (i_style and WS_CLIPCHILDREN))  then
+      begin        
+        SetWindowLong(window_handle, GWL_STYLE, i_style or WS_CLIPCHILDREN );
+      end;
+
       {$IFDEF LCLQT5}
         libvlc_media_player_set_hwnd(p_mi, QWidget_winid(TQtWidget(window_handle).Widget));
         exit;
@@ -10939,7 +11949,7 @@ begin
       exit;
     {$ENDIF}
 
-    {$IFDEF UNIX}
+    {$IFDEF LINIX}
       {$IFDEF LCLQT5}
         libvlc_media_player_set_xwindow(p_mi, QWidget_winid(TQtWidget(window_handle).Widget));
         exit;
@@ -10961,6 +11971,12 @@ begin
   // DELPHI
 
   {$IFDEF MSWINDOWS}
+    i_style := GetWindowLong(window_handle, GWL_STYLE);
+    if (0 = (i_style and WS_CLIPCHILDREN))  then
+    begin
+      SetWindowLong(window_handle, GWL_STYLE, i_style or WS_CLIPCHILDREN );
+    end;
+	  
     libvlc_media_player_set_hwnd(p_mi, window_handle);
     exit;
   {$ENDIF}
@@ -11228,7 +12244,7 @@ end;
 
 // =============================================================================
 
-constructor TArgcArgs.Create(values : array of string; ignoreEmptyStrings : Boolean = TRUE; allowDuplicates : Boolean = FALSE);
+constructor TArgcArgs.Create(values : array of WideString; ignoreEmptyStrings : Boolean = TRUE; allowDuplicates : Boolean = FALSE);
 begin
   inherited Create;
   Clear();
@@ -11253,7 +12269,7 @@ begin
   end;
 end;
 
-function TArgcArgs.AddArg(value : string; ignoreEmptyStrings : Boolean = TRUE; allowDuplicates : Boolean = FALSE) : Integer;
+function TArgcArgs.AddArg(value : AnsiString; ignoreEmptyStrings : Boolean = TRUE; allowDuplicates : Boolean = FALSE) : Integer;
 var
   aIdx : Integer;
 begin
@@ -11269,7 +12285,7 @@ begin
   begin
     for aIdx := 0 to Fargc - 1 do
     begin
-      if (Fargv[aIdx] = AnsiString(value)) then
+      if (Fargv[aIdx] = value) then
       begin
         Result := Fargc;
         exit;
@@ -11278,20 +12294,29 @@ begin
   end;
   if (Fargc < ARGC_ARGV_MAX_SIZE) then
   begin
-    Fargv[Fargc] := AnsiString(value);
+    Fargv[Fargc] := value;
     Fargs[Fargc] := PAnsiChar(Fargv[argc]);
     Inc(Fargc);
   end;
   Result := Fargc;
 end;
 
-function TArgcArgs.AddArg(values : array of string; ignoreEmptyStrings : Boolean = TRUE; allowDuplicates : Boolean = FALSE) : Integer;
+// without this D4 not complie
+// [Error] PasLibVlcUnit.pas(8403): Ambiguous overloaded call to 'AddArg'
+{$IFDEF DELPHI6_UP}
+function TArgcArgs.AddArg(value : WideString; ignoreEmptyStrings : Boolean = TRUE; allowDuplicates : Boolean = FALSE) : Integer;
+begin
+  Result := AddArg(AnsiString(Utf8Encode(value)), ignoreEmptyStrings, allowDuplicates);
+end;
+{$ENDIF}
+
+function TArgcArgs.AddArg(values : array of WideString; ignoreEmptyStrings : Boolean = TRUE; allowDuplicates : Boolean = FALSE) : Integer;
 var
   aIdx : Integer;
 begin
   for aIdx := Low(values) to High(values) do
   begin
-    AddArg(values[aIdx], ignoreEmptyStrings, allowDuplicates);
+    AddArg(AnsiString(Utf8Encode(values[aIdx])), ignoreEmptyStrings, allowDuplicates);
   end;
   Result := Fargc;
 end;
@@ -11302,7 +12327,7 @@ var
 begin
   for aIdx := 0 to values.Count-1 do
   begin
-    AddArg(values[aIdx], ignoreEmptyStrings, allowDuplicates);
+    AddArg(values.Strings[aIdx], ignoreEmptyStrings, allowDuplicates);
   end;
   Result := Fargc;
 end;
@@ -11320,6 +12345,7 @@ end;
 initialization
 
   VLCLibraryPath := ExtractFilePath(ParamStr(0));
+
   libvlc_handle := 0;
   libvlccore_handle := 0;
 
@@ -11352,6 +12378,5 @@ finalization
   libvlc_dynamic_dll_file_version_str    := '';
   libvlc_dynamic_dll_product_version_str := '';
 {$ENDIF}
-  libvlc_dynamic_dll_done;
 
 end.

@@ -1,4 +1,38 @@
-// http://docwiki.embarcadero.com/RADStudio/Rio/en/Compiler_Versions
+﻿(*
+ *******************************************************************************
+ *
+ * Last modified: 2024.01.15
+ *
+ * author: Robert Jędrzejczyk
+ * e-mail: robert@prog.olsztyn.pl
+ *
+ *******************************************************************************
+ *
+ * Copyright (c) 2024 Robert Jędrzejczyk
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ *)
+
+// http://docwiki.embarcadero.com/RADStudio/Sydney/en/Compiler_Versions
+// https://docwiki.embarcadero.com/RADStudio/Alexandria/en/Compiler_Versions
+// https://docwiki.embarcadero.com/RADStudio/Athens/en/Compiler_Versions
 
 {$DEFINE DELPHI_XX}
 
@@ -157,7 +191,7 @@
 // Delphi Seattle (Win32/Win64/OSX/iOS32/iOS64/Android)
 {$IFDEF VER300}
   {$DEFINE DELPHI23}
-  {$DEFINE DELPHI_10_0}
+  {$DEFINE DELPHI_XE10}
   {$DEFINE DELPHI_SEATTLE}
   {$UNDEF DELPHI_XX}
 {$ENDIF}
@@ -165,7 +199,7 @@
 // Delphi Berlin (Win32/Win64/OSX/iOS32/iOS64/Android)
 {$IFDEF VER310}
   {$DEFINE DELPHI24}
-  {$DEFINE DELPHI_10_1}
+  {$DEFINE DELPHI_XE10_1}
   {$DEFINE DELPHI_BERLIN}
   {$UNDEF DELPHI_XX}
 {$ENDIF}
@@ -173,39 +207,48 @@
 // Delphi Tokyo (Win32/Win64/OSX/iOS32/iOS64/Android/Linux64)
 {$IFDEF VER320}
   {$DEFINE DELPHI25}
-  {$DEFINE DELPHI_10_2}
+  {$DEFINE DELPHI_XE10_2}
   {$DEFINE DELPHI_TOKYO}
   {$UNDEF DELPHI_XX}
 {$ENDIF}
 
-// Delphi Rio (Win32/Win64/OSX/iOS32/iOS64/Android/Android64/Linux64)
+// Delphi Rio (Win32/Win64/OSX/iOS32/iOS64/Android/Linux64)
 {$IFDEF VER330}
   {$DEFINE DELPHI26}
-  {$DEFINE DELPHI_10_3}
+  {$DEFINE DELPHI_XE10_3}
   {$DEFINE DELPHI_RIO}
   {$UNDEF DELPHI_XX}
 {$ENDIF}
 
-// Delphi Sydney (Win32/Win64/OSX64/iOS32/iOS64/Android/Android64/Linux64)
+//Delphi 10.4 Sydney (Denali)
 {$IFDEF VER340}
   {$DEFINE DELPHI27}
-  {$DEFINE DELPHI_10_4}
+  {$DEFINE DELPHI_XE10_4}
   {$DEFINE DELPHI_SYDNEY}
   {$UNDEF DELPHI_XX}
 {$ENDIF}
 
-// Delphi Alexandria (Win32/Win64/OSX64/iOS64/Android/Android64/Linux64)
+// Delphi 11.0 Alexandria
 {$IFDEF VER350}
   {$DEFINE DELPHI28}
-  {$DEFINE DELPHI_11}
+  {$DEFINE DELPHI_XE11}
   {$DEFINE DELPHI_ALEXANDRIA}
   {$UNDEF DELPHI_XX}
 {$ENDIF}
 
+// Delphi 12.0 Athens
+{$IFDEF VER360}
+  {$DEFINE DELPHI29}
+  {$DEFINE DELPHI_XE12}
+  {$DEFINE DELPHI_ATHENS}
+  {$UNDEF DELPHI_XX}
+{$ENDIF}
+
+// Delphi 13.0 Florence
 {$IFDEF VER370}
-  {$DEFINE DELPHI28}
-  {$DEFINE DELPHI_11}
-  {$DEFINE DELPHI_ALEXANDRIA}
+  {$DEFINE DELPHI29}
+  {$DEFINE DELPHI_XE12}
+  {$DEFINE DELPHI_ATHENS}
   {$UNDEF DELPHI_XX}
 {$ENDIF}
 
@@ -213,6 +256,7 @@
   ERROR: Unknown compiler please update compiler.inc file
 {$ENDIF}
 
+{$IFDEF DELPHI29} {$DEFINE DELPHI29_UP} {$ENDIF}
 {$IFDEF DELPHI28} {$DEFINE DELPHI28_UP} {$ENDIF}
 {$IFDEF DELPHI27} {$DEFINE DELPHI27_UP} {$ENDIF}
 {$IFDEF DELPHI26} {$DEFINE DELPHI26_UP} {$ENDIF}
@@ -241,6 +285,7 @@
 {$IFDEF DELPHI2}  {$DEFINE DELPHI2_UP}  {$ENDIF}
 {$IFDEF DELPHI1}  {$DEFINE DELPHI1_UP}  {$ENDIF}
 
+{$IFDEF DELPHI29_UP} {$DEFINE DELPHI28_UP} {$ENDIF}
 {$IFDEF DELPHI28_UP} {$DEFINE DELPHI27_UP} {$ENDIF}
 {$IFDEF DELPHI27_UP} {$DEFINE DELPHI26_UP} {$ENDIF}
 {$IFDEF DELPHI26_UP} {$DEFINE DELPHI25_UP} {$ENDIF}
@@ -269,12 +314,13 @@
 {$IFDEF DELPHI3_UP}  {$DEFINE DELPHI2_UP}  {$ENDIF}
 {$IFDEF DELPHI2_UP}  {$DEFINE DELPHI1_UP}  {$ENDIF}
 
-{$IFDEF DELPHI28_UP} {$DEFINE DELPHI_11_UP} {$DEFINE DELPHI_ALEXANDRIA_UP} {$ENDIF}
-{$IFDEF DELPHI27_UP} {$DEFINE DELPHI_10_4_UP} {$DEFINE DELPHI_SYDNEY_UP} {$ENDIF}
-{$IFDEF DELPHI26_UP} {$DEFINE DELPHI_10_3_UP} {$DEFINE DELPHI_RIO_UP} {$ENDIF}
-{$IFDEF DELPHI25_UP} {$DEFINE DELPHI_10_2_UP} {$DEFINE DELPHI_TOKYO_UP} {$ENDIF}
-{$IFDEF DELPHI24_UP} {$DEFINE DELPHI_10_1_UP} {$DEFINE DELPHI_BERLIN_UP} {$ENDIF}
-{$IFDEF DELPHI23_UP} {$DEFINE DELPHI_10_0_UP} {$DEFINE DELPHI_SEATTLE_UP} {$ENDIF}
+{$IFDEF DELPHI29_UP} {$DEFINE DELPHI_XE12_UP} {$DEFINE DELPHI_ATHENS_UP} {$ENDIF}
+{$IFDEF DELPHI28_UP} {$DEFINE DELPHI_XE11_UP} {$DEFINE DELPHI_ALEXANDRIA_UP} {$ENDIF}
+{$IFDEF DELPHI27_UP} {$DEFINE DELPHI_XE10_4_UP} {$DEFINE DELPHI_SYDNEY_UP} {$ENDIF}
+{$IFDEF DELPHI26_UP} {$DEFINE DELPHI_XE10_3_UP} {$DEFINE DELPHI_RIO_UP} {$ENDIF}
+{$IFDEF DELPHI25_UP} {$DEFINE DELPHI_XE10_2_UP} {$DEFINE DELPHI_TOKYO_UP} {$ENDIF}
+{$IFDEF DELPHI24_UP} {$DEFINE DELPHI_XE10_1_UP} {$DEFINE DELPHI_BERLIN_UP} {$ENDIF}
+{$IFDEF DELPHI23_UP} {$DEFINE DELPHI_XE10_UP} {$DEFINE DELPHI_SEATTLE_UP} {$ENDIF}
 {$IFDEF DELPHI22_UP} {$DEFINE DELPHI_XE8_UP} {$ENDIF}
 {$IFDEF DELPHI21_UP} {$DEFINE DELPHI_XE7_UP} {$ENDIF}
 {$IFDEF DELPHI20_UP} {$DEFINE DELPHI_XE6_UP} {$ENDIF}
@@ -295,6 +341,11 @@
 
 {$IFDEF FPC}
   {$DEFINE HAS_ENUM_ORDINALITY}
+  {$DEFINE HAS_INLINE}
+{$ENDIF}
+
+{$IFDEF DELPHI2005_UP}
+  {$DEFINE HAS_INLINE}
 {$ENDIF}
 
 {$IFDEF DELPHI7_UP}
@@ -357,4 +408,3 @@
 {$ENDIF}
 
 {$IFDEF HAS_Z4}{$Z4}{$ELSE}{$Z+}{$ENDIF}
-
